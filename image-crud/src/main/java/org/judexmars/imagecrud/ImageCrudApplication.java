@@ -1,13 +1,13 @@
-package org.judexmars.imageprocessingapi;
+package org.judexmars.imagecrud;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ImageProcessingApiApplication {
+public class ImageCrudApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ImageProcessingApiApplication.class, args);
+		SpringApplication.run(ImageCrudApplication.class, args);
 	}
 
 }
