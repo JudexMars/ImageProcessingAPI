@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="2024-03-26-02-create-image" author="JudexMars">
+        <createTable tableName="image">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="filename" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="size" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="link" type="varchar(300)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="author_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="image_account_fk" references="account(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

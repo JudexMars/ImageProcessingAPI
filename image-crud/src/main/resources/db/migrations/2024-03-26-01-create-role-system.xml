@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="2024-03-26-01-create-role-system" author="JudexMars">
+        <createTable remarks="Аккаунт пользователя" tableName="account">
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="account_pk"/>
+            </column>
+            <column name="username" type="VARCHAR">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="bool" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable remarks="Роль пользователя (к которой относятся привилегии)" tableName="role">
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_pk"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable remarks="Привилегии роли, то есть что она может делать" tableName="privilege">
+            <column name="id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="privilege_pk"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable remarks="Refresh-токены" tableName="refresh_token">
+            <column name="username" type="varchar">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="token" type="varchar">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+
+        <createTable remarks="Связка роли и привилегии" tableName="role_privilege">
+            <column name="role_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_privilege_pk"
+                             foreignKeyName="role_privilege_role_fk" references="role(id)"/>
+            </column>
+            <column name="privilege_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="role_privilege_pk"
+                             foreignKeyName="role_privilege_privilege_fk" references="privilege(id)"/>
+            </column>
+        </createTable>
+
+        <createTable remarks="Связка аккаунта и роли" tableName="account_role">
+            <column name="account_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="account_role_pk"
+                             foreignKeyName="account_role_account_fk" references="account(id)"/>
+            </column>
+            <column name="role_id" type="uuid">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="account_role_pk"
+                             foreignKeyName="account_role_role_fk" references="role(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
