@@ -69,7 +69,6 @@ public class AccountService implements UserDetailsService {
         if (!createAccountDto.password().equals(createAccountDto.confirmPassword())) {
             throw new ConfirmPasswordException();
         }
-        log.info("Create account begins (exceptions passed)");
         var account = accountMapper.toAccountEntity(createAccountDto);
         account.setPassword(passwordEncoder.encode(account.getPassword()));
         account.setEnabled(true);
@@ -100,7 +99,7 @@ public class AccountService implements UserDetailsService {
         return getRoleByName("ROLE_VIEWER");
     }
 
-    AccountEntity getEntityByUsername(String username) {
+    public AccountEntity getEntityByUsername(String username) {
         return (AccountEntity) loadUserByUsername(username);
     }
 }

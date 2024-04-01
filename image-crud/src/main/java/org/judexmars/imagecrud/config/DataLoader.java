@@ -8,9 +8,17 @@ import org.judexmars.imagecrud.repository.PrivilegeRepository;
 import org.judexmars.imagecrud.repository.RoleRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.*;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -72,4 +80,33 @@ public class DataLoader implements ApplicationRunner {
         }
         return null;
     }
+
+//    @Bean
+//    public ApplicationListener<ServletWebServerInitializedEvent> downloadSwaggerFile() {
+//        var restTemplate = new RestTemplate();
+//        return args -> {
+//            String url = "http://localhost:8080/api/v1/my-swagger.yaml";
+//            String destinationFile = "./swagger.yaml";
+//
+//            ResponseEntity<byte[]> response = restTemplate.getForEntity(url, byte[].class);
+//
+//            if (response.getStatusCode().is2xxSuccessful()) {
+//                byte[] responseBody = response.getBody();
+//                try (ByteArrayInputStream inputStream = new ByteArrayInputStream(responseBody);
+//                     BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+//                     OutputStream outputStream = new FileOutputStream(new FileSystemResource(destinationFile).getFile())) {
+//                    byte[] data = new byte[1024];
+//                    int bytesRead;
+//                    while ((bytesRead = bufferedInputStream.read(data, 0, 1024)) != -1) {
+//                        outputStream.write(data, 0, bytesRead);
+//                    }
+//                    System.out.println("File downloaded successfully");
+//                } catch (IOException e) {
+//                    System.out.println("Error downloading file: " + e.getMessage());
+//                }
+//            } else {
+//                System.out.println("Failed to download file, status code: " + response.getStatusCodeValue());
+//            }
+//        };
+//    }
 }

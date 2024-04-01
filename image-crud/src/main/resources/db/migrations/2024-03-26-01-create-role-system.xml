@@ -38,15 +38,6 @@
             </column>
         </createTable>
 
-        <createTable remarks="Refresh-токены" tableName="refresh_token">
-            <column name="username" type="varchar">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-            <column name="token" type="varchar">
-                <constraints nullable="false" primaryKey="true"/>
-            </column>
-        </createTable>
-
         <createTable remarks="Связка роли и привилегии" tableName="role_privilege">
             <column name="role_id" type="uuid">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="role_privilege_pk"

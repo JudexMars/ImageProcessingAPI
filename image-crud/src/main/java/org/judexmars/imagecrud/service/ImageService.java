@@ -9,7 +9,6 @@ import org.judexmars.imagecrud.exception.DeleteFileException;
 import org.judexmars.imagecrud.exception.ImageNotFoundException;
 import org.judexmars.imagecrud.exception.UploadFailedException;
 import org.judexmars.imagecrud.mapper.ImageMapper;
-import org.judexmars.imagecrud.model.ImageEntity;
 import org.judexmars.imagecrud.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,26 +29,6 @@ public class ImageService {
     private final S3Service minioService;
 
     private final AccountService accountService;
-
-    /**
-     * Check if all ids from the list are present in image table
-     *
-     * @param imageIds ids
-     * @return true / false
-     */
-    public boolean existAll(List<UUID> imageIds) {
-        return imageRepository.existsImageByIdIn(imageIds);
-    }
-
-    /**
-     * Get all images with provided ids
-     *
-     * @param imageIds ids
-     * @return list of all corresponding images
-     */
-    public List<ImageEntity> getAllImages(List<UUID> imageIds) {
-        return imageRepository.findAllByIdIn(imageIds);
-    }
 
     /**
      * Get meta information of the image with provided id
@@ -73,8 +52,8 @@ public class ImageService {
      * @return binary file
      * @throws Exception if image is not found or can't be downloaded for some reason
      */
-    public byte[] downloadImage(String id) throws Exception {
-        var image = getImageMeta(UUID.fromString(id));
+    public byte[] downloadImage(UUID id) throws Exception {
+        var image = getImageMeta(id);
         return minioService.downloadImage(image.link());
     }
 

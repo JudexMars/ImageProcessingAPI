@@ -37,61 +37,61 @@ public class ImageController {
 
     @Operation(summary = "Загрузка нового изображения в систему", description = """
             В рамках данного метода необходимо:
-                    1. Провалидировать файл. Максимальный размер файла - 10Мб, поддерживаемые расширения - png, jpeg.
-                    2. Загрузить файл в S3 хранилище.
-                    3. Сохранить в БД мета-данные файла - название; размер; ИД файла в S3; ИД пользователя, которому файл принадлежит.""")
+            1. Провалидировать файл. Максимальный размер файла - 10Мб, поддерживаемые расширения - png, jpeg.
+            2. Загрузить файл в S3 хранилище.
+            3. Сохранить в БД мета-данные файла - название; размер; ИД файла в S3; ИД пользователя, которому файл принадлежит.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Успех выполнения операции", useReturnTypeSchema = true),
-            @ApiResponse(responseCode = "400", description = "Файл не прошел валидацию", content = @Content(schema = @Schema(implementation = BaseResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = @Content(schema = @Schema(implementation = BaseResponseDto.class)))
+            @ApiResponse(responseCode = "400", description = "Файл не прошел валидацию", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class)))
     })
     @PreAuthorize("hasAuthority('UPLOAD_IMAGE')")
-    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UploadImageResponseDto loadImage(@RequestPart(value = "file") MultipartFile file) throws UploadFailedException {
+    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
+    public UploadImageResponseDto uploadImage(@RequestPart(value = "file") MultipartFile file) throws UploadFailedException {
         return imageService.uploadImage(file, securityUtils.getLoggedInUsername());
     }
 
     @Operation(summary = "Скачивание файла по ИД", description = """
             В рамках данного метода необходимо:
-                    1. Проверить, есть ли такой файл в системе.
-                    2. Проверить, доступен ли данный файл пользователю.
-                    3. Скачать файл.""")
+            1. Проверить, есть ли такой файл в системе.
+            2. Проверить, доступен ли данный файл пользователю.
+            3. Скачать файл.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Успех выполнения операции", content = @Content(schema = @Schema(type = "string", format = "binary"))),
-            @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен", content = @Content(schema = @Schema(implementation = BaseResponseDto.class))),
-            @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = @Content(schema = @Schema(implementation = BaseResponseDto.class)))
+            @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class)))
     })
     @PreAuthorize("hasAuthority('DOWNLOAD_IMAGE')")
-    @GetMapping(value = "/image/{image-id}", produces = MediaType.IMAGE_PNG_VALUE)
-    public byte[] getImage(@PathVariable(name = "image-id") String id) throws Exception {
+    @GetMapping(value = "/image/{image-id}")
+    public byte[] downloadImage(@PathVariable(name = "image-id") UUID id) throws Exception {
         return imageService.downloadImage(id);
     }
 
     @Operation(summary = "Удаление файла по ИД", description = """
             В рамках данного метода необходимо:
-                    1. Проверить, есть ли такой файл в системе.
-                    2. Проверить, доступен ли данный файл пользователю.
-                    3. Удалить файл.""")
+            1. Проверить, есть ли такой файл в системе.
+            2. Проверить, доступен ли данный файл пользователю.
+            3. Удалить файл.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Успех выполнения операции", useReturnTypeSchema = true),
             @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен", useReturnTypeSchema = true),
             @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", useReturnTypeSchema = true)
     })
     @PreAuthorize("hasAuthority('DELETE_IMAGE')")
-    @DeleteMapping("/image/{id}")
-    public BaseResponseDto deleteImage(@PathVariable UUID id) {
+    @DeleteMapping(value = "/image/{image-id}", produces = "application/json")
+    public BaseResponseDto deleteImage(@PathVariable(name = "image-id") UUID id) {
         imageService.deleteImage(id);
         return new BaseResponseDto(true, messageRenderer.render("response.image.delete_successful"));
     }
 
     @Operation(summary = "Получение списка изображений, которые доступны пользователю", description = """
             В рамках данного метода необходимо:
-                1. Получить мета-информацию о всех изображениях, которые доступны пользователю""")
+            1. Получить мета-информацию о всех изображениях, которые доступны пользователю""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Успех выполнения операции", useReturnTypeSchema = true),
-            @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = @Content(schema = @Schema(implementation = BaseResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))),
     })
-    @GetMapping("/images")
+    @GetMapping(value = "/images", produces = "application/json")
     public GetImagesResponseDto getImages() {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         var account = accountService.getByUsername(username);

@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -10,6 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.time.Duration;
 import java.util.Objects;
 
+@Slf4j
 public class MinIOTestConfig {
     private static volatile MinIOContainer minIOContainer = null;
 
@@ -40,13 +42,16 @@ public class MinIOTestConfig {
             var s3url = minIOContainer.getS3URL();
             var username = minIOContainer.getUserName();
             var password = minIOContainer.getPassword();
+            log.info("EXPOSED PORTS FOR MINIO: " + minIOContainer.getExposedPorts());
+            log.info("HOST FOR MINIO: " + minIOContainer.getHost());
+            log.info("ENDPOINT: " + minIOContainer.getS3URL());
 
             TestPropertyValues.of(
-                    "storage.region=us-east-1",
-                    "storage.bucket-name=test",
-                    "storage.endpoint=" + s3url,
-                    "storage.access-key=" + username,
-                    "storage.secret-key=" + password
+                    "minio.bucket=test",
+                    "minio.url=" + s3url,
+                    "minio.access-key=" + username,
+                    "minio.secret-key=" + password,
+                    "minio.image-size=" + 10485760
             ).applyTo(applicationContext.getEnvironment());
 
         }

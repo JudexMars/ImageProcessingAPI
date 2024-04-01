@@ -17,6 +17,7 @@ import org.judexmars.imagecrud.dto.auth.JwtResponseDto;
 import org.judexmars.imagecrud.model.AccountEntity;
 import org.judexmars.imagecrud.service.AccountService;
 import org.judexmars.imagecrud.service.AuthService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,11 +39,11 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Некорректный формат данных", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))
             }),
-            @ApiResponse(responseCode = "403", description = "Некорректные реквизиты", content = {
+            @ApiResponse(responseCode = "401", description = "Некорректные реквизиты", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))
             })
     })
-    @PostMapping("/login")
+    @PostMapping(value = "/login", produces = "application/json")
     public JwtResponseDto login(@RequestBody @Valid JwtRequestDto requestDto) {
         var userDetails = accountService.loadUserByUsername(requestDto.username());
         return getResponseDto((AccountEntity) userDetails, requestDto.username(), requestDto.password());
@@ -54,11 +55,11 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Некорректный формат данных", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))
             }),
-            @ApiResponse(responseCode = "403", description = "Некорректные реквизиты", content = {
+            @ApiResponse(responseCode = "401", description = "Некорректные реквизиты", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))
             })
     })
-    @PostMapping("/signup")
+    @PostMapping(value = "/signup", produces = "application/json")
     public JwtResponseDto signUp(@RequestBody @Valid CreateAccountDto requestDto) {
         var createdAccountDto = accountService.createAccount(requestDto);
         var userDetails = accountService.loadUserByUsername(createdAccountDto.username());
@@ -75,7 +76,7 @@ public class AuthController {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BaseResponseDto.class))
             })
     })
-    @PostMapping("/refresh")
+    @PostMapping(value = "/refresh", produces = "application/json")
     public JwtResponseDto refresh(@RequestBody @Valid JwtRefreshRequestDto requestDto) {
         var newTokens = authService.refresh(requestDto.token());
         return new JwtResponseDto(

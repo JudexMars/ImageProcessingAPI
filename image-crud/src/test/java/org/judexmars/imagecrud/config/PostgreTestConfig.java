@@ -44,8 +44,7 @@ public class PostgreTestConfig {
             TestPropertyValues.of(
                     "spring.datasource.url=" + jdbcUrl,
                     "spring.datasource.username=" + username,
-                    "spring.datasource.password=" + password,
-                    "spring.datasource.driverClassName=" + "org.hibernate.dialect.PostgreSQLDialect"
+                    "spring.datasource.password=" + password
             ).applyTo(applicationContext.getEnvironment());
         }
     }

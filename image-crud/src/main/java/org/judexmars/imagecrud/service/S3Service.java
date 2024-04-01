@@ -3,6 +3,7 @@ package org.judexmars.imagecrud.service;
 import io.minio.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.utils.IOUtils;
 import org.judexmars.imagecrud.config.minio.MinioProperties;
@@ -26,7 +27,9 @@ public class S3Service {
     private final MinioProperties properties;
 
     @PostConstruct
+    @SneakyThrows
     public void init() throws Exception {
+        log.info(properties.toString());
         if (!client.bucketExists(BucketExistsArgs.builder().bucket(properties.getBucket()).build())) {
             client.makeBucket(MakeBucketArgs.builder().bucket(properties.getBucket()).build());
         }

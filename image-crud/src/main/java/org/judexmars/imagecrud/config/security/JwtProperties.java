@@ -1,11 +1,13 @@
 package org.judexmars.imagecrud.config.security;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
-@Data
+@Getter
+@Setter
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 
