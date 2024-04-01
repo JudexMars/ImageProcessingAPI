@@ -8,17 +8,9 @@ import org.judexmars.imagecrud.repository.PrivilegeRepository;
 import org.judexmars.imagecrud.repository.RoleRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.web.servlet.context.ServletWebServerInitializedEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;

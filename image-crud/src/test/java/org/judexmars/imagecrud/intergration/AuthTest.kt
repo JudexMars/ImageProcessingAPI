@@ -27,6 +27,7 @@ class AuthTest : AbstractBaseTest() {
     @Autowired
     private lateinit var authService: AuthService
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private lateinit var mockMvc: MockMvc
 

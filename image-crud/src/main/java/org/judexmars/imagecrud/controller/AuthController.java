@@ -17,7 +17,6 @@ import org.judexmars.imagecrud.dto.auth.JwtResponseDto;
 import org.judexmars.imagecrud.model.AccountEntity;
 import org.judexmars.imagecrud.service.AccountService;
 import org.judexmars.imagecrud.service.AuthService;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

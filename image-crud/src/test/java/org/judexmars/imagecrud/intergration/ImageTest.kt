@@ -34,6 +34,7 @@ class ImageTest : AbstractBaseTest() {
     @Autowired
     private lateinit var imageRepository: ImageRepository
 
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private lateinit var mockMvc: MockMvc
 

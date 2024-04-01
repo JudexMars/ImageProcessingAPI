@@ -18,7 +18,8 @@
                 <constraints nullable="false"/>
             </column>
             <column name="author_id" type="uuid">
-                <constraints nullable="false" foreignKeyName="image_account_fk" references="account(id)" deleteCascade="true"/>
+                <constraints nullable="false" foreignKeyName="image_account_fk" references="account(id)"
+                             deleteCascade="true"/>
             </column>
         </createTable>
     </changeSet>
