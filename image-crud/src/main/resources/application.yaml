@@ -29,6 +29,10 @@ spring:
       ddl-auto: validate
   messages:
     basename: i18n/message
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 minio:
   url: http://localhost:9000
   access-key: judex

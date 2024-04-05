@@ -6,10 +6,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.judexmars.imagecrud.dto.BaseResponseDto;
-import org.judexmars.imagecrud.exception.AccountAlreadyExistsException;
-import org.judexmars.imagecrud.exception.BaseNotFoundException;
-import org.judexmars.imagecrud.exception.DeleteFileException;
-import org.judexmars.imagecrud.exception.InvalidJwtException;
+import org.judexmars.imagecrud.exception.*;
 import org.judexmars.imagecrud.service.MessageRenderer;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -19,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.List;
 import java.util.Objects;
@@ -76,5 +74,17 @@ public class AppExceptionHandler {
     public ResponseEntity<BaseResponseDto> handleAccountAlreadyExists(AccountAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new BaseResponseDto(false, messageRenderer.render(ex.getMessageCode(), ex.getArgs())));
+    }
+
+    @ExceptionHandler(UploadFailedException.class)
+    public ResponseEntity<BaseResponseDto> handleBaseException(UploadFailedException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new BaseResponseDto(false, messageRenderer.render(ex.getMessageCode(), ex.getArgs())));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<BaseResponseDto> handleMultipartMaxSize() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new BaseResponseDto(false, messageRenderer.render("exception.upload_failed")));
     }
 }

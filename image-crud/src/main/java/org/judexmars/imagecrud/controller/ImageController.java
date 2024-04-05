@@ -16,7 +16,9 @@ import org.judexmars.imagecrud.service.AccountService;
 import org.judexmars.imagecrud.service.ImageService;
 import org.judexmars.imagecrud.service.MessageRenderer;
 import org.judexmars.imagecrud.utils.SecurityUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -63,8 +65,12 @@ public class ImageController {
     })
     @PreAuthorize("hasAuthority('DOWNLOAD_IMAGE')")
     @GetMapping(value = "/image/{image-id}")
-    public byte[] downloadImage(@PathVariable(name = "image-id") UUID id) throws Exception {
-        return imageService.downloadImage(id);
+    public ResponseEntity<byte[]> downloadImage(@PathVariable(name = "image-id") UUID id) throws Exception {
+        var meta = imageService.getImageMeta(id);
+        var image = imageService.downloadImage(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + meta.filename())
+                .body(image);
     }
 
     @Operation(summary = "Удаление файла по ИД", description = """
