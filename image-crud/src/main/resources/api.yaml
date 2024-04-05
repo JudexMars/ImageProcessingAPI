@@ -3,18 +3,18 @@ info:
   title: OpenAPI definition
   version: v0
 servers:
-  - url: http://localhost:8080/api/v1
-    description: Generated server url
+- url: http://localhost:8080/api/v1
+  description: Generated server url
 tags:
-  - name: Image Controller
-    description: Базовый CRUD API для работы с картинками
-  - name: Authentication Controller
-    description: "API для аутентификации, регистрации и обновления токенов"
+- name: Image Controller
+  description: Базовый CRUD API для работы с картинками
+- name: Authentication Controller
+  description: "API для аутентификации, регистрации и обновления токенов"
 paths:
   /image:
     post:
       tags:
-        - Image Controller
+      - Image Controller
       summary: Загрузка нового изображения в систему
       description: |-
         В рамках данного метода необходимо:
@@ -27,19 +27,13 @@ paths:
           multipart/form-data:
             schema:
               required:
-                - file
+              - file
               type: object
               properties:
                 file:
                   type: string
                   format: binary
       responses:
-        "500":
-          description: Непредвиденная ошибка
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UiSuccessContainer'
         "200":
           description: Успех выполнения операции
           content:
@@ -52,12 +46,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UiSuccessContainer'
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
       security:
-        - Auth: [ ]
+      - Auth: []
   /auth/signup:
     post:
       tags:
-        - Authentication Controller
+      - Authentication Controller
       summary: Регистрация аккаунта
       operationId: signUp
       requestBody:
@@ -67,8 +67,8 @@ paths:
               $ref: '#/components/schemas/CreateAccountDto'
         required: true
       responses:
-        "400":
-          description: Некорректный формат данных
+        "401":
+          description: Некорректные реквизиты
           content:
             application/json:
               schema:
@@ -79,8 +79,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JwtResponse'
-        "401":
-          description: Некорректные реквизиты
+        "400":
+          description: Некорректный формат данных
           content:
             application/json:
               schema:
@@ -88,7 +88,7 @@ paths:
   /auth/refresh:
     post:
       tags:
-        - Authentication Controller
+      - Authentication Controller
       summary: Обновление токена
       operationId: refresh
       requestBody:
@@ -98,8 +98,8 @@ paths:
               $ref: '#/components/schemas/JwtRefreshRequest'
         required: true
       responses:
-        "400":
-          description: Некорректный формат данных
+        "403":
+          description: Некорректные реквизиты
           content:
             application/json:
               schema:
@@ -110,8 +110,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JwtResponse'
-        "403":
-          description: Некорректные реквизиты
+        "400":
+          description: Некорректный формат данных
           content:
             application/json:
               schema:
@@ -119,7 +119,7 @@ paths:
   /auth/login:
     post:
       tags:
-        - Authentication Controller
+      - Authentication Controller
       summary: Вход в аккаунт
       operationId: login
       requestBody:
@@ -135,14 +135,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/JwtResponse'
-        "400":
-          description: Некорректный формат данных
+        "401":
+          description: Некорректные реквизиты
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UiSuccessContainer'
-        "401":
-          description: Некорректные реквизиты
+        "400":
+          description: Некорректный формат данных
           content:
             application/json:
               schema:
@@ -150,31 +150,31 @@ paths:
   /images:
     get:
       tags:
-        - Image Controller
+      - Image Controller
       summary: "Получение списка изображений, которые доступны пользователю"
       description: |-
         В рамках данного метода необходимо:
         1. Получить мета-информацию о всех изображениях, которые доступны пользователю
       operationId: getImages
       responses:
-        "500":
-          description: Непредвиденная ошибка
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UiSuccessContainer'
         "200":
           description: Успех выполнения операции
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetImagesResponse'
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
       security:
-        - Auth: [ ]
+      - Auth: []
   /image/{image-id}:
     get:
       tags:
-        - Image Controller
+      - Image Controller
       summary: Скачивание файла по ИД
       description: |-
         В рамках данного метода необходимо:
@@ -183,13 +183,20 @@ paths:
         3. Скачать файл.
       operationId: downloadImage
       parameters:
-        - name: image-id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - name: image-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
+        "200":
+          description: Успех выполнения операции
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
         "404":
           description: Файл не найден в системе или недоступен
           content:
@@ -202,18 +209,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UiSuccessContainer'
-        "200":
-          description: Успех выполнения операции
-          content:
-            '*/*':
-              schema:
-                type: string
-                format: binary
       security:
-        - Auth: [ ]
+      - Auth: []
     delete:
       tags:
-        - Image Controller
+      - Image Controller
       summary: Удаление файла по ИД
       description: |-
         В рамках данного метода необходимо:
@@ -222,12 +222,12 @@ paths:
         3. Удалить файл.
       operationId: deleteImage
       parameters:
-        - name: image-id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      - name: image-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         "500":
           description: Непредвиденная ошибка
@@ -248,12 +248,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/UiSuccessContainer'
       security:
-        - Auth: [ ]
+      - Auth: []
 components:
   schemas:
     UiSuccessContainer:
       required:
-        - success
+      - success
       type: object
       properties:
         success:
@@ -264,7 +264,7 @@ components:
           description: Сообщение об ошибке
     UploadImageResponse:
       required:
-        - imageId
+      - imageId
       type: object
       properties:
         imageId:
@@ -273,9 +273,9 @@ components:
           format: uuid
     CreateAccountDto:
       required:
-        - confirmPassword
-        - password
-        - username
+      - confirmPassword
+      - password
+      - username
       type: object
       properties:
         username:
@@ -297,15 +297,15 @@ components:
           type: string
     JwtRefreshRequest:
       required:
-        - token
+      - token
       type: object
       properties:
         token:
           type: string
     JwtRequest:
       required:
-        - password
-        - username
+      - password
+      - username
       type: object
       properties:
         username:
@@ -314,17 +314,18 @@ components:
           type: string
     GetImagesResponse:
       required:
-        - images
+      - images
       type: object
       properties:
         images:
           type: array
+          description: Список изображений
           items:
             $ref: '#/components/schemas/Image'
     Image:
       required:
-        - filename
-        - size
+      - filename
+      - size
       type: object
       properties:
         imageId:

@@ -7,8 +7,8 @@ import java.util.List;
 
 @Schema(name = "GetImagesResponse")
 public record GetImagesResponseDto(
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        @ArraySchema(arraySchema = @Schema(description = "Список изображений", requiredMode = Schema.RequiredMode.REQUIRED))
+        @ArraySchema(arraySchema = @Schema(description = "Список изображений", requiredMode = Schema.RequiredMode.REQUIRED),
+                     schema = @Schema(requiredMode = Schema.RequiredMode.REQUIRED))
         List<ImageResponseDto> images
 ) {
 }
