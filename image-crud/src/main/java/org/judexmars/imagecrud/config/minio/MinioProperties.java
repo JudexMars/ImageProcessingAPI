@@ -5,23 +5,26 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Properties specific to Minio.
+ */
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "minio")
 @ToString
 public class MinioProperties {
 
-    private String url;
+  private String url;
 
-    private int port;
+  private int port;
 
-    private String accessKey;
+  private String accessKey;
 
-    private String secretKey;
+  private String secretKey;
 
-    private boolean secure;
+  private boolean secure;
 
-    private String bucket;
+  private String bucket;
 
-    private long imageSize;
+  private long imageSize;
 }

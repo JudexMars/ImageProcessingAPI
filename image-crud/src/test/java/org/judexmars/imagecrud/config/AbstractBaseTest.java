@@ -11,12 +11,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @DirtiesContext
-@ContextConfiguration(initializers = {PostgreTestConfig.Initializer.class, MinIOTestConfig.Initializer.class, RedisTestConfig.Initializer.class})
+@ContextConfiguration(initializers = {PostgreTestConfig.Initializer.class,
+    MinIOTestConfig.Initializer.class, RedisTestConfig.Initializer.class})
 @Testcontainers
 public abstract class AbstractBaseTest {
-    @Container
-    public GenericContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15");
+  @Container
+  public GenericContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15");
 
-    @Container
-    public GenericContainer<?> minioContainer = new MinIOContainer("minio/minio");
+  @Container
+  public GenericContainer<?> minioContainer = new MinIOContainer("minio/minio");
 }
