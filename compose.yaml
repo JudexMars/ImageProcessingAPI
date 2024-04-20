@@ -13,10 +13,7 @@ services:
     secrets:
       - postgres-password
       - ssl-keystore
-      - ssl-keystore-password
-      - ssl-key-password
       - ssl-truststore
-      - ssl-truststore-password
     ports:
       - 8080:8080
     environment:
@@ -25,12 +22,13 @@ services:
       - SPRING_DATA_REDIS_HOST=redis
       - MINIO_URL=http://image-crud-s3:9000
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9082,kafka-2:9083,kafka-3:9084
-#      - SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL=SSL
-#      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/run/secrets/ssl-truststore
-#      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=/run/secrets/ssl-truststore-password
-#      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/run/secrets/ssl-keystore
-#      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=/run/secrets/ssl-keystore-password
-#      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=/run/secrets/ssl-key-password
+      - SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL=SSL
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/run/secrets/ssl-truststore
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/run/secrets/ssl-keystore
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - image-crud-network
   image-crud-postgres:
@@ -81,31 +79,30 @@ services:
       - "29092:29092"
     secrets:
       - ssl-keystore
-      - ssl-keystore-password
-      - ssl-key-password
       - ssl-truststore
-      - ssl-truststore-password
     environment:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-1:9092,EXTERNAL://kafka-1:9082, EXTERNAL_SAME_HOST://localhost:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
 
-#      KAFKA_SSL_KEYSTORE_LOCATION: /run/secrets/ssl-keystore
-#      KAFKA_SSL_KEYSTORE_PASSWORD: /run/secrets/ssl-keystore-password
-#      KAFKA_SSL_KEY_PASSWORD: /run/secrets/ssl-key-password
-#      KAFKA_SSL_TRUSTSTORE_LOCATION: /run/secrets/ssl-truststore
-#      KAFKA_SSL_TRUSTSTORE_PASSWORD: /run/secrets/ssl-truststore-password
-#      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-#      KAFKA_SSL_CLIENT_AUTH: required
-#      KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SSL
+      KAFKA_SSL_KEYSTORE_LOCATION: /run/secrets/ssl-keystore
+      KAFKA_SSL_KEYSTORE_PASSWORD: 123456
+      KAFKA_SSL_KEY_PASSWORD: 123456
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /run/secrets/ssl-truststore
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: 123456
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ''
 
       KAFKA_LISTENERS: INTERNAL://kafka-1:9092,EXTERNAL://kafka-1:9082,CONTROLLER://kafka-1:9093, EXTERNAL_SAME_HOST://:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL_SAME_HOST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SSL,EXTERNAL:SSL,CONTROLLER:SSL,EXTERNAL_SAME_HOST:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093,2@kafka-2:9094,3@kafka-3:9095'
       KAFKA_MIN_INSYNC_REPLICAS: 1
       KAFKA_BROKER_ID: 1
       CLUSTER_ID: L0ZEQh1yTbGhNNUE7-6wSQ
+#    volumes:
+#      - ./image-crud/environment/kafka/server.properties:/etc/kafka/server.properties
     networks:
       - image-crud-network
 
@@ -114,17 +111,32 @@ services:
     ports:
       - "9083:9083"
       - "29093:29093"
+    secrets:
+      - ssl-keystore
+      - ssl-truststore
     environment:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-2:9093,EXTERNAL://kafka-2:9083, EXTERNAL_SAME_HOST://localhost:29093
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_SSL_KEYSTORE_LOCATION: /run/secrets/ssl-keystore
+      KAFKA_SSL_KEYSTORE_PASSWORD: 123456
+      KAFKA_SSL_KEY_PASSWORD: 123456
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /run/secrets/ssl-truststore
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: 123456
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ''
+
       KAFKA_LISTENERS: INTERNAL://kafka-2:9093,EXTERNAL://kafka-2:9083,CONTROLLER://kafka-2:9094, EXTERNAL_SAME_HOST://:29093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL_SAME_HOST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SSL,EXTERNAL:SSL,CONTROLLER:SSL,EXTERNAL_SAME_HOST:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093,2@kafka-2:9094,3@kafka-3:9095'
       KAFKA_MIN_INSYNC_REPLICAS: 1
       KAFKA_BROKER_ID: 2
       CLUSTER_ID: L0ZEQh1yTbGhNNUE7-6wSQ
+#    volumes:
+#      - ./image-crud/environment/kafka/server.properties:/etc/kafka/server.properties
     networks:
       - image-crud-network
 
@@ -133,17 +145,32 @@ services:
     ports:
       - "9084:9084"
       - "29094:29094"
+    secrets:
+      - ssl-keystore
+      - ssl-truststore
     environment:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-3:9094,EXTERNAL://kafka-3:9084, EXTERNAL_SAME_HOST://localhost:29094
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_SSL_KEYSTORE_LOCATION: /run/secrets/ssl-keystore
+      KAFKA_SSL_KEYSTORE_PASSWORD: 123456
+      KAFKA_SSL_KEY_PASSWORD: 123456
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /run/secrets/ssl-truststore
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: 123456
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ''
+
       KAFKA_LISTENERS: INTERNAL://kafka-3:9094,EXTERNAL://kafka-3:9084,CONTROLLER://kafka-3:9095, EXTERNAL_SAME_HOST://:29094
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL_SAME_HOST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SSL,EXTERNAL:SSL,CONTROLLER:SSL,EXTERNAL_SAME_HOST:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093,2@kafka-2:9094,3@kafka-3:9095'
       KAFKA_MIN_INSYNC_REPLICAS: 1
       KAFKA_BROKER_ID: 3
       CLUSTER_ID: L0ZEQh1yTbGhNNUE7-6wSQ
+#    volumes:
+#      - ./image-crud/environment/kafka/server.properties:/etc/kafka/server.properties
     networks:
       - image-crud-network
   kafka-ui:
@@ -151,12 +178,21 @@ services:
     image: provectuslabs/kafka-ui:latest
     ports:
       - 9020:8080
+    secrets:
+      - ssl-truststore
+      - ssl-keystore
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9082,kafka-2:9083,kafka-3:9084
       DYNAMIC_CONFIG_ENABLED: 'true'
       KAFKA_CLUSTERS_0_AUDIT_TOPICAUDITENABLED: 'true'
       KAFKA_CLUSTERS_0_AUDIT_CONSOLEAUDITENABLED: 'true'
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_KEYSTORE_LOCATION: /run/secrets/ssl-keystore
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_KEYSTORE_PASSWORD: "123456"
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: /run/secrets/ssl-truststore
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: "123456"
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ''
     networks:
       - image-crud-network
 
@@ -164,15 +200,9 @@ secrets:
   postgres-password:
     file: image-crud/src/main/resources/db/postgres_password.txt
   ssl-keystore:
-    file: image-crud/environment/kafka.server.keystore.jks
-  ssl-keystore-password:
-    file: image-crud/environment/keystore-password.txt
-  ssl-key-password:
-    file: image-crud/environment/key-password.txt
+    file: image-crud/environment/kafka/kafka.server.keystore.jks
   ssl-truststore:
-    file: image-crud/environment/kafka.server.truststore.jks
-  ssl-truststore-password:
-    file: image-crud/environment/truststore-password.txt
+    file: image-crud/environment/kafka/kafka.server.truststore.jks
 networks:
   image-crud-network:
     driver: bridge
