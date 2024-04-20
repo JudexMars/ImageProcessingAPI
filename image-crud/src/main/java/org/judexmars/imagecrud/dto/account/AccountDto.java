@@ -9,7 +9,7 @@ import java.util.UUID;
  * @param username username of the account
  */
 public record AccountDto(
-        UUID id,
-        String username
+    UUID id,
+    String username
 ) {
 }

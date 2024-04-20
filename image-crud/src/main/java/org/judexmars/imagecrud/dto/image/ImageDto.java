@@ -10,8 +10,8 @@ import java.io.Serializable;
  * @param link     link to the image in storage
  */
 public record ImageDto(
-        String filename,
-        int size,
-        String link
+    String filename,
+    int size,
+    String link
 ) implements Serializable {
 }

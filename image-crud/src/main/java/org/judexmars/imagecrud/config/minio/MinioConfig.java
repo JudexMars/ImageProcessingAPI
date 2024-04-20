@@ -14,18 +14,18 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(MinioProperties.class)
 public class MinioConfig {
 
-    /**
-     * Minio client.
-     *
-     * @param minioProperties minio properties
-     * @return minio client
-     */
-    @Bean
-    public MinioClient minioClient(MinioProperties minioProperties) {
-        log.info("MINIO CLIENT: " + minioProperties.toString());
-        return MinioClient.builder()
-                .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
-                .endpoint(minioProperties.getUrl())
-                .build();
-    }
+  /**
+   * Minio client.
+   *
+   * @param minioProperties minio properties
+   * @return minio client
+   */
+  @Bean
+  public MinioClient minioClient(MinioProperties minioProperties) {
+    log.info("MINIO CLIENT: " + minioProperties.toString());
+    return MinioClient.builder()
+        .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
+        .endpoint(minioProperties.getUrl())
+        .build();
+  }
 }

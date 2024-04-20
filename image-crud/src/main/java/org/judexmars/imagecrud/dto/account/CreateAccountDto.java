@@ -10,11 +10,11 @@ import jakarta.validation.constraints.NotBlank;
  * @param confirmPassword confirm password of the account
  */
 public record CreateAccountDto(
-        @NotBlank
-        String username,
-        @NotBlank
-        String password,
-        @NotBlank
-        String confirmPassword
+    @NotBlank
+    String username,
+    @NotBlank
+    String password,
+    @NotBlank
+    String confirmPassword
 ) {
 }

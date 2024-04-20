@@ -1,7 +1,6 @@
 package org.judexmars.imagecrud.dto.imagefilters;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.util.UUID;
 
 /**
@@ -11,7 +10,7 @@ import java.util.UUID;
  */
 @Schema(name = "ApplyImageFiltersResponse")
 public record ApplyImageFiltersResponseDto(
-        @Schema(description = "ИД запроса в системе", requiredMode = Schema.RequiredMode.REQUIRED)
-        UUID requestId
+    @Schema(description = "ИД запроса в системе", requiredMode = Schema.RequiredMode.REQUIRED)
+    UUID requestId
 ) {
 }

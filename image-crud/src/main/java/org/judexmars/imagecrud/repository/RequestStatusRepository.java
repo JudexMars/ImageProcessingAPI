@@ -1,10 +1,9 @@
 package org.judexmars.imagecrud.repository;
 
+import java.util.Optional;
 import org.judexmars.imagecrud.model.RequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 /**
  * Repository for request statuses.
@@ -12,5 +11,5 @@ import java.util.Optional;
 @Repository
 public interface RequestStatusRepository extends JpaRepository<RequestStatus, Integer> {
 
-    Optional<RequestStatus> findByName(String name);
+  Optional<RequestStatus> findByName(String name);
 }

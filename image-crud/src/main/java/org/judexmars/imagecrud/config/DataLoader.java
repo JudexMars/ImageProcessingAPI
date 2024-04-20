@@ -1,6 +1,9 @@
 package org.judexmars.imagecrud.config;
 
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.judexmars.imagecrud.dto.imagefilters.BasicRequestStatus;
 import org.judexmars.imagecrud.model.PrivilegeEntity;
@@ -14,10 +17,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.function.BooleanSupplier;
-import java.util.function.Predicate;
-
 /**
  * Application startup data loader.
  */
@@ -25,70 +24,70 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataLoader implements ApplicationRunner {
 
-    private final PrivilegeRepository privilegeRepository;
+  private final PrivilegeRepository privilegeRepository;
 
-    private final RoleRepository roleRepository;
+  private final RoleRepository roleRepository;
 
-    private final RequestStatusRepository requestStatusRepository;
+  private final RequestStatusRepository requestStatusRepository;
 
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) {
-        initPrivileges();
-        initRoles();
-        initStatuses();
+  @Override
+  @Transactional
+  public void run(ApplicationArguments args) {
+    initPrivileges();
+    initRoles();
+    initStatuses();
+  }
+
+  private void initPrivileges() {
+
+    var privileges = List.of(
+        new PrivilegeEntity().setName("UPLOAD_IMAGE"),
+        new PrivilegeEntity().setName("DOWNLOAD_IMAGE"),
+        new PrivilegeEntity().setName("DELETE_IMAGE")
+    );
+
+    Predicate<String> condition = (String x) -> privilegeRepository.findByName(x).isEmpty();
+
+    for (var privilege : privileges) {
+      createIf(privilege, privilegeRepository, () -> condition.test(privilege.getName()));
     }
+  }
 
-    private void initPrivileges() {
+  private void initRoles() {
 
-        var privileges = List.of(
-                new PrivilegeEntity().setName("UPLOAD_IMAGE"),
-                new PrivilegeEntity().setName("DOWNLOAD_IMAGE"),
-                new PrivilegeEntity().setName("DELETE_IMAGE")
-        );
+    // Пока без админа из-за ненадобности
 
-        Predicate<String> condition = (String x) -> privilegeRepository.findByName(x).isEmpty();
+    var viewerPrivileges = List.of(
+        privilegeRepository.findByName("UPLOAD_IMAGE").orElseThrow(),
+        privilegeRepository.findByName("DOWNLOAD_IMAGE").orElseThrow(),
+        privilegeRepository.findByName("DELETE_IMAGE").orElseThrow()
+    );
 
-        for (var privilege : privileges) {
-            createIf(privilege, privilegeRepository, () -> condition.test(privilege.getName()));
-        }
+    var roles = List.of(
+        new RoleEntity().setName("ROLE_VIEWER").setPrivileges(viewerPrivileges)
+    );
+
+    Predicate<String> condition = (String x) -> roleRepository.findByName(x).isEmpty();
+
+    for (var role : roles) {
+      createIf(role, roleRepository, () -> condition.test(role.getName()));
     }
+  }
 
-    private void initRoles() {
+  private void initStatuses() {
 
-        // Пока без админа из-за ненадобности
+    Predicate<String> condition = (String x) -> requestStatusRepository.findByName(x).isEmpty();
 
-        var viewerPrivileges = List.of(
-                privilegeRepository.findByName("UPLOAD_IMAGE").orElseThrow(),
-                privilegeRepository.findByName("DOWNLOAD_IMAGE").orElseThrow(),
-                privilegeRepository.findByName("DELETE_IMAGE").orElseThrow()
-        );
-
-        var roles = List.of(
-                new RoleEntity().setName("ROLE_VIEWER").setPrivileges(viewerPrivileges)
-        );
-
-        Predicate<String> condition = (String x) -> roleRepository.findByName(x).isEmpty();
-
-        for (var role : roles) {
-            createIf(role, roleRepository, () -> condition.test(role.getName()));
-        }
+    for (var status : BasicRequestStatus.values()) {
+      createIf(new RequestStatus().setName(status.name()),
+          requestStatusRepository, () -> condition.test(status.name()));
     }
+  }
 
-    private void initStatuses() {
-
-        Predicate<String> condition = (String x) -> requestStatusRepository.findByName(x).isEmpty();
-
-        for (var status : BasicRequestStatus.values()) {
-            createIf(new RequestStatus().setName(status.name()),
-                    requestStatusRepository, () -> condition.test(status.name()));
-        }
+  private <T> void createIf(T entity, JpaRepository<T, ?> repository, BooleanSupplier condition) {
+    if (condition.getAsBoolean()) {
+      repository.save(entity);
     }
-
-    private <T> void createIf(T entity, JpaRepository<T, ?> repository, BooleanSupplier condition) {
-        if (condition.getAsBoolean()) {
-            repository.save(entity);
-        }
-    }
+  }
 
 }

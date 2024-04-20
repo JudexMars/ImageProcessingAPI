@@ -1,10 +1,9 @@
 package org.judexmars.imagecrud.dto.kafka;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.judexmars.imagecrud.dto.imagefilters.FilterType;
-
 import java.util.List;
 import java.util.UUID;
+import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 
 /**
  * Message that is sent to kafka after user requests applying filters.
@@ -14,9 +13,9 @@ import java.util.UUID;
  * @param filters   list of filter types
  */
 public record ImageStatusMessage(
-        UUID imageId,
-        UUID requestId,
-        @JsonInclude(JsonInclude.Include.NON_EMPTY)
-        List<FilterType> filters
+    UUID imageId,
+    UUID requestId,
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    List<FilterType> filters
 ) {
 }
