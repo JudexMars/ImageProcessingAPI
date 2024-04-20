@@ -8,5 +8,6 @@
 
     <include file="/db/migrations/2024-03-26-01-create-role-system.xml"/>
     <include file="/db/migrations/2024-03-26-02-create-image.xml"/>
+    <include file="/db/migrations/2024-04-13-01-create-apply-filter-request.xml"/>
 
 </databaseChangeLog>

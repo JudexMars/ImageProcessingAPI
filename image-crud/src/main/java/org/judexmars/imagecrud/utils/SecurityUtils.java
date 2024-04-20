@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class SecurityUtils {
 
-  /**
-   * Get email of the logged-in user.
-   *
-   * @return email
-   */
-  public String getLoggedInUsername() {
-    return SecurityContextHolder.getContext().getAuthentication().getName();
-  }
+    /**
+     * Get email of the logged-in user.
+     *
+     * @return email
+     */
+    public String getLoggedInUsername() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
 }

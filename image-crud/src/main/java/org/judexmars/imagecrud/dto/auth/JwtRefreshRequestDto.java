@@ -10,7 +10,7 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Schema(name = "JwtRefreshRequest")
 public record JwtRefreshRequestDto(
-    @NotBlank
-    String token
+        @NotBlank
+        String token
 ) {
 }

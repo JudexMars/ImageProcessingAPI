@@ -1,17 +1,12 @@
 package org.judexmars.imagecrud.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import java.util.List;
-import java.util.UUID;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Representation of the Privilege entity in database.
@@ -23,13 +18,13 @@ import lombok.experimental.Accessors;
 @Table(name = "privilege")
 public class PrivilegeEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-  @Column(name = "name")
-  private String name;
+    @Column(name = "name")
+    private String name;
 
-  @ManyToMany(mappedBy = "privileges")
-  private List<RoleEntity> roles;
+    @ManyToMany(mappedBy = "privileges")
+    private List<RoleEntity> roles;
 }

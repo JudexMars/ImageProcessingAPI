@@ -1,4 +1,6 @@
 spring:
+  kafka:
+    listener.ack-mode: manual
   profiles:
     include: dev
   config:
