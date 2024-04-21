@@ -61,7 +61,7 @@ public class ImageFiltersService {
    * @param imageId   id of the image
    * @param requestId id of the request
    * @return DTO containing id of the modified image
-   * (or the original if it hasn't been processed yet) and request status
+   *     (or the original if it hasn't been processed yet) and request status
    */
   public GetModifiedImageDto getApplyImageFilterRequest(UUID imageId, UUID requestId) {
     imageService.getImageMeta(imageId);
