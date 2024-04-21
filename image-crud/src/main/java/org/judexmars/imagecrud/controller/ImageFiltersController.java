@@ -27,7 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Auth")
-@Tag(name = "Image Filters Controller", description = "TODO")
+@Tag(name = "Image Filters Controller",
+        description = "API для применения фильтров к загруженным картинкам")
 public class ImageFiltersController {
 
   private final ImageFiltersService imageFiltersService;
