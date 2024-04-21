@@ -52,11 +52,13 @@ public class ImageFiltersController {
       @ApiResponse(responseCode = "200", description = "Успех выполнения операции",
           useReturnTypeSchema = true),
       @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен",
-          content = @Content(schema = @Schema(implementation = BaseResponseDto.class))),
+          content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = BaseResponseDto.class))),
       @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка",
-          content = @Content(schema = @Schema(implementation = BaseResponseDto.class)))
+          content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = BaseResponseDto.class)))
   })
-  @PostMapping("/image/{image-id}/filters/apply")
+  @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponseDto applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters) {
     return imageFiltersService.applyFilters(imageId, filters);
@@ -77,11 +79,13 @@ public class ImageFiltersController {
       @ApiResponse(responseCode = "200", description = "Успех выполнения операции",
           useReturnTypeSchema = true),
       @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен",
-          content = @Content(schema = @Schema(implementation = BaseResponseDto.class))),
+          content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = BaseResponseDto.class))),
       @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка",
-          content = @Content(schema = @Schema(implementation = BaseResponseDto.class)))
+          content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = BaseResponseDto.class)))
   })
-  @GetMapping("/image/{image-id}/filters/{request-id}")
+  @GetMapping(value = "/image/{image-id}/filters/{request-id}", produces = "application/json")
   public GetModifiedImageDto getModifiedImage(@PathVariable(name = "image-id") UUID imageId,
                                               @PathVariable(name = "request-id") UUID requestId) {
     return imageFiltersService.getApplyImageFilterRequest(imageId, requestId);

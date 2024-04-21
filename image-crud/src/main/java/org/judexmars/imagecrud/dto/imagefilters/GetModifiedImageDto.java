@@ -10,7 +10,7 @@ import java.util.UUID;
 public record GetModifiedImageDto(
     @Schema(description = """
         ИД модифицированного или оригинального файла\
-        в случае отсутствия первого""",
+         в случае отсутствия первого""",
         requiredMode = Schema.RequiredMode.REQUIRED)
     UUID imageId,
     @Schema(description = "Статус обработки файла",
