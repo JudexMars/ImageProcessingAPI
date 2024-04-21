@@ -1,0 +1,476 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080/api/v1
+  description: Generated server url
+tags:
+- name: Image Filters Controller
+  description: TODO
+- name: Image Controller
+  description: Базовый CRUD API для работы с картинками
+- name: Authentication Controller
+  description: "API для аутентификации, регистрации и обновления токенов"
+paths:
+  /image:
+    post:
+      tags:
+      - Image Controller
+      summary: Загрузка нового изображения в систему
+      description: "В рамках данного метода необходимо:\n1. Провалидировать файл.\
+        \ Максимальный размер файла - 10Мб, \nподдерживаемые расширения - png, jpeg.\n\
+        2. Загрузить файл в S3 хранилище.\n3. Сохранить в БД мета-данные файла - н\
+        азвание; размер; ИД файла в S3; ИД пользователя, \nкоторому файл принадлеж\
+        ит."
+      operationId: uploadImage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - file
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Успех выполнения операции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadImageResponse'
+        "400":
+          description: Файл не прошел валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+      security:
+      - Auth: []
+  /image/{image-id}/filters/apply:
+    post:
+      tags:
+      - Image Filters Controller
+      summary: Применение указанных фильтров к изображению
+      description: |-
+        В рамках данного метода необходимо:
+        1. Проверить, есть ли у пользователя доступ к файлу
+        2. Сохранить в БД новый запрос на изменение файла:
+            1. статус = WIP
+            2. ИД оригинальной картинки = ИД оригинального файла
+            3. ИД измененной картинки = null
+            4. ИД запроса = уникальный ИД запроса в системе
+        3. Отправить в Kafka событие о создании запроса
+        4. Убедиться, что шаг 3 выполнен успешно, в противном случае выполнить повторную попытку
+        5. Вернуть пользователю ИД его запроса
+      operationId: applyFilters
+      parameters:
+      - name: image-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: filters
+        in: query
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - REVERSE_COLORS
+            - CROP
+            - REMOVE_BACKGROUND
+      responses:
+        "200":
+          description: Успех выполнения операции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplyImageFiltersResponse'
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "404":
+          description: Файл не найден в системе или недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+      security:
+      - Auth: []
+  /auth/signup:
+    post:
+      tags:
+      - Authentication Controller
+      summary: Регистрация аккаунта
+      operationId: signUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountDto'
+        required: true
+      responses:
+        "400":
+          description: Некорректный формат данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "401":
+          description: Некорректные реквизиты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "200":
+          description: Регистрация успешна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+  /auth/refresh:
+    post:
+      tags:
+      - Authentication Controller
+      summary: Обновление токена
+      operationId: refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JwtRefreshRequest'
+        required: true
+      responses:
+        "400":
+          description: Некорректный формат данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "403":
+          description: Некорректные реквизиты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "200":
+          description: Создан новый токен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+  /auth/login:
+    post:
+      tags:
+      - Authentication Controller
+      summary: Вход в аккаунт
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JwtRequest'
+        required: true
+      responses:
+        "200":
+          description: Вход успешен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtResponse'
+        "400":
+          description: Некорректный формат данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "401":
+          description: Некорректные реквизиты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+  /images:
+    get:
+      tags:
+      - Image Controller
+      summary: "Получение списка изображений, которые доступны пользователю"
+      description: |-
+        В рамках данного метода необходимо:
+        1. Получить мета-информацию о всех изображениях, которые доступны пользователю
+      operationId: getImages
+      responses:
+        "200":
+          description: Успех выполнения операции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetImagesResponse'
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+      security:
+      - Auth: []
+  /image/{image-id}:
+    get:
+      tags:
+      - Image Controller
+      summary: Скачивание файла по ИД
+      description: |-
+        В рамках данного метода необходимо:
+        1. Проверить, есть ли такой файл в системе.
+        2. Проверить, доступен ли данный файл пользователю.
+        3. Скачать файл.
+      operationId: downloadImage
+      parameters:
+      - name: image-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "200":
+          description: Успех выполнения операции
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Файл не найден в системе или недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+      security:
+      - Auth: []
+    delete:
+      tags:
+      - Image Controller
+      summary: Удаление файла по ИД
+      description: |-
+        В рамках данного метода необходимо:
+        1. Проверить, есть ли такой файл в системе.
+        2. Проверить, доступен ли данный файл пользователю.
+        3. Удалить файл.
+      operationId: deleteImage
+      parameters:
+      - name: image-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "200":
+          description: Успех выполнения операции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "404":
+          description: Файл не найден в системе или недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+      security:
+      - Auth: []
+  /image/{image-id}/filters/{request-id}:
+    get:
+      tags:
+      - Image Filters Controller
+      summary: Получение ИД измененного файла по ИД запроса
+      description: "В рамках данного метода необходимо найти и вернуть по ИД польз\
+        овательского запроса \nИД соответсвующего ему файла и статус, в котором на\
+        ходится процесс применения фильтров.\nПо ИД оригинального изображения нужн\
+        о убедиться, что ИД запроса относится к нему и \nчто у пользователя есть д\
+        оступ к данному изображению (оригинальному).\n"
+      operationId: getModifiedImage
+      parameters:
+      - name: image-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: request-id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Успех выполнения операции
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetModifiedImageByRequestIdResponse'
+        "500":
+          description: Непредвиденная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+        "404":
+          description: Файл не найден в системе или недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UiSuccessContainer'
+      security:
+      - Auth: []
+components:
+  schemas:
+    UiSuccessContainer:
+      required:
+      - success
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Признак успеха
+        message:
+          type: string
+          description: Сообщение об ошибке
+    UploadImageResponse:
+      required:
+      - imageId
+      type: object
+      properties:
+        imageId:
+          type: string
+          description: ИД файла
+          format: uuid
+    ApplyImageFiltersResponse:
+      required:
+      - requestId
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: ИД запроса в системе
+          format: uuid
+    CreateAccountDto:
+      required:
+      - confirmPassword
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        confirmPassword:
+          type: string
+    JwtResponse:
+      type: object
+      properties:
+        accountId:
+          type: string
+        username:
+          type: string
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    JwtRefreshRequest:
+      required:
+      - token
+      type: object
+      properties:
+        token:
+          type: string
+    JwtRequest:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    GetImagesResponse:
+      required:
+      - images
+      type: object
+      properties:
+        images:
+          type: array
+          description: Список изображений
+          items:
+            $ref: '#/components/schemas/Image'
+    Image:
+      required:
+      - filename
+      - size
+      type: object
+      properties:
+        imageId:
+          type: string
+          description: ИД файла
+          format: uuid
+        filename:
+          type: string
+          description: Название изображения
+        size:
+          type: integer
+          description: Размер файла в байтах
+          format: int32
+    GetModifiedImageByRequestIdResponse:
+      required:
+      - imageId
+      - status
+      type: object
+      properties:
+        imageId:
+          type: string
+          description: ИД модифицированного или оригинального файла в случае отсутствия
+            первого
+          format: uuid
+        status:
+          type: string
+          description: Статус обработки файла
+          enum:
+          - WIP
+          - DONE
+  securitySchemes:
+    Auth:
+      type: http
+      in: header
+      scheme: bearer
+      bearerFormat: JWT
