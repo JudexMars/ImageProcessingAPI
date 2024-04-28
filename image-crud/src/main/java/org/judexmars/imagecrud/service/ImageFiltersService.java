@@ -11,6 +11,7 @@ import org.judexmars.imagecrud.dto.imagefilters.BasicRequestStatus;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
 import org.judexmars.imagecrud.dto.kafka.ImageStatusMessage;
+import org.judexmars.imagecrud.exception.RequestNotFoundException;
 import org.judexmars.imagecrud.model.ApplyFilterRequestEntity;
 import org.judexmars.imagecrud.model.RequestStatus;
 import org.judexmars.imagecrud.repository.ApplyFilterRequestRepository;
@@ -103,12 +104,12 @@ public class ImageFiltersService {
 
   private RequestStatus getRequestStatus(String name) {
     log.info("Getting request status for {}", name);
-    return requestStatusRepository.findByName(name).orElseThrow(
-        IllegalArgumentException::new);
+    return requestStatusRepository.findByName(name).orElseThrow(() ->
+        new RequestNotFoundException(name));
   }
 
   private ApplyFilterRequestEntity getRequestEntity(UUID requestId) {
-    return applyFilterRequestRepository.findById(requestId).orElseThrow(
-        IllegalArgumentException::new);
+    return applyFilterRequestRepository.findById(requestId).orElseThrow(() ->
+        new RequestNotFoundException(requestId.toString()));
   }
 }
