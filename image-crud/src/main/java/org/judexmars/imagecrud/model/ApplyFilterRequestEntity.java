@@ -33,9 +33,6 @@ public class ApplyFilterRequestEntity {
   @ManyToOne
   private ImageEntity modifiedImage;
 
-  @Column(name = "modified_image_id")
-  private UUID modifiedImageId;
-
   @ManyToOne
   private RequestStatus status;
 }

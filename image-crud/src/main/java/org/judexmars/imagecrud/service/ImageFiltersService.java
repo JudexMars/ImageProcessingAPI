@@ -49,14 +49,15 @@ public class ImageFiltersService {
    */
   public ApplyImageFiltersResponseDto applyFilters(UUID imageId,
                                                    List<FilterType> filters,
-                                                   Map<String, String> props) {
+                                                   Map<String, String> props,
+                                                   UUID accountId) {
     var meta = imageService.getImageMetaAsEntitySafely(imageId, accountId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());
     var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImage(meta);
     var savedRequest = applyFilterRequestRepository.save(request);
     kafkaTemplate.send("images.wip",
         new ImageStatusMessage(
-            meta.link(),
+            meta.getId().toString(),
             savedRequest.getRequestId().toString(),
             filters,
             props));
@@ -107,7 +108,7 @@ public class ImageFiltersService {
     var requestId = value.requestId();
     var request = getRequestEntity(UUID.fromString(requestId));
     request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
-    request.setImage(imageService.getImageMetaAsEntity(imageId));
+    request.setImage(imageService.getImageMetaAsEntity(UUID.fromString(imageId)));
     applyFilterRequestRepository.save(request);
     ack.acknowledge();
   }

@@ -52,7 +52,7 @@ internal class ImageFiltersServiceTest {
         doReturn(ImageEntity().setId(imageId)).whenever(imageService).getImageMetaAsEntitySafely(imageId, null)
 
         // When
-        val result = imageFiltersService.applyFilters(imageId, null, filters, emptyMap())
+        val result = imageFiltersService.applyFilters(imageId, filters, emptyMap(), null)
 
         // Then
         assertEquals(responseDto, result)

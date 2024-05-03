@@ -72,7 +72,7 @@ public class ImageFiltersController {
                                                    @RequestParam Map<String, String> props) {
     var loggedInUsername = securityUtils.getLoggedInUsername();
     var account = accountService.getByUsername(loggedInUsername);
-    return imageFiltersService.applyFilters(imageId, account.id(), filters, props);
+    return imageFiltersService.applyFilters(imageId, filters, props, account.id());
   }
 
   /**
