@@ -5,6 +5,7 @@ import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto
 import org.judexmars.imagecrud.dto.imagefilters.FilterType
 import org.judexmars.imagecrud.dto.kafka.ImageStatusMessage
 import org.judexmars.imagecrud.model.ApplyFilterRequestEntity
+import org.judexmars.imagecrud.model.ImageEntity
 import org.judexmars.imagecrud.model.RequestStatus
 import org.judexmars.imagecrud.repository.ApplyFilterRequestRepository
 import org.judexmars.imagecrud.repository.RequestStatusRepository
@@ -48,9 +49,10 @@ internal class ImageFiltersServiceTest {
 
         doReturn(savedRequest).whenever(applyFilterRequestRepository).save(any())
         doReturn(Optional.of(RequestStatus().setName("WIP"))).whenever(requestStatusRepository).findByName("WIP")
+        doReturn(ImageEntity().setId(imageId)).whenever(imageService).getImageMetaAsEntitySafely(imageId, null)
 
         // When
-        val result = imageFiltersService.applyFilters(imageId, filters, emptyMap())
+        val result = imageFiltersService.applyFilters(imageId, null, filters, emptyMap())
 
         // Then
         assertEquals(responseDto, result)

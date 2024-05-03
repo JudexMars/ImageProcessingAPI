@@ -44,14 +44,15 @@ public class ImageFiltersService {
    *
    * @param imageId id of the image
    * @param filters filter types
+   * @param accountId id of account requesting this
    * @return DTO with request id
    */
   public ApplyImageFiltersResponseDto applyFilters(UUID imageId,
                                                    List<FilterType> filters,
                                                    Map<String, String> props) {
-    var meta = imageService.getImageMeta(imageId);
+    var meta = imageService.getImageMetaAsEntitySafely(imageId, accountId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());
-    var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImageId(imageId);
+    var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImage(meta);
     var savedRequest = applyFilterRequestRepository.save(request);
     kafkaTemplate.send("images.wip",
         new ImageStatusMessage(
@@ -71,10 +72,12 @@ public class ImageFiltersService {
    * @return DTO containing id of the modified image
    *     (or the original if it hasn't been processed yet) and request status
    */
-  public GetModifiedImageDto getApplyImageFilterRequest(UUID imageId, UUID requestId) {
-    imageService.getImageMeta(imageId);
+  public GetModifiedImageDto getApplyImageFilterRequest(UUID imageId,
+                                                        UUID requestId,
+                                                        UUID accountId) {
+    imageService.getImageMeta(imageId, accountId);
     var request = getRequestEntity(requestId);
-    return new GetModifiedImageDto(request.getImageId(),
+    return new GetModifiedImageDto(request.getImage().getId(),
         BasicRequestStatus.valueOf(request.getStatus().getName()));
   }
 
@@ -104,7 +107,7 @@ public class ImageFiltersService {
     var requestId = value.requestId();
     var request = getRequestEntity(UUID.fromString(requestId));
     request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
-    request.setImageId(UUID.fromString(imageId));
+    request.setImage(imageService.getImageMetaAsEntity(imageId));
     applyFilterRequestRepository.save(request);
     ack.acknowledge();
   }

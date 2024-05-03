@@ -82,14 +82,15 @@ internal class ImageServiceTest {
     fun getImage() {
         // Given
         val id = UUID.randomUUID()
-        val mockedEntity = ImageEntity().setId(id)
+        val accountEntity = AccountEntity().setId(UUID.randomUUID())
+        val mockedEntity = ImageEntity().setId(id).setAuthor(accountEntity)
         val expectedDto = ImageDto("filename", 10, "link")
 
         whenever(imageRepository.findById(id)).thenReturn(Optional.of(mockedEntity))
         whenever(mapper.toImageDto(mockedEntity)).thenReturn(expectedDto)
 
         // When
-        val resultDto = imageService.getImageMeta(id)
+        val resultDto = imageService.getImageMeta(id, accountEntity.id)
 
         // Then
         assertEquals(expectedDto.filename, resultDto.filename)
@@ -102,10 +103,10 @@ internal class ImageServiceTest {
         val id = UUID.randomUUID()
         val mockedImage = ImageDto("filename", 10, "link")
 
-        doReturn(mockedImage).whenever(imageService).getImageMeta(id)
+        doReturn(mockedImage).whenever(imageService).getImageMeta(id, null)
 
         // When
-        imageService.deleteImage(id)
+        imageService.deleteImage(id, null)
 
         // Then
         verify(imageRepository, times(1)).deleteById(id)
@@ -118,11 +119,11 @@ internal class ImageServiceTest {
         // Given
         val id = UUID.randomUUID()
 
-        doThrow(ImageNotFoundException("link")).whenever(imageService).getImageMeta(id)
+        doThrow(ImageNotFoundException("link")).whenever(imageService).getImageMeta(id, null)
 
         // When & then
         assertThrows<ImageNotFoundException> {
-            imageService.deleteImage(id)
+            imageService.deleteImage(id, null)
         }
         verify(imageRepository, never()).deleteById(id)
         verify(minioService, never()).deleteImage(anyString())
@@ -135,12 +136,12 @@ internal class ImageServiceTest {
         val id = UUID.randomUUID()
         val mockedImage = ImageDto("filename", 1, "link")
 
-        doReturn(mockedImage).whenever(imageService).getImageMeta(id)
+        doReturn(mockedImage).whenever(imageService).getImageMeta(id, null)
         whenever(minioService.deleteImage(anyString())).thenThrow(DeleteFileException())
 
         // When & then
         assertThrows<DeleteFileException> {
-            imageService.deleteImage(id)
+            imageService.deleteImage(id, null)
         }
         verify(imageRepository, times(1)).deleteById(id)
         verify(minioService, times(1)).deleteImage(mockedImage.link)
