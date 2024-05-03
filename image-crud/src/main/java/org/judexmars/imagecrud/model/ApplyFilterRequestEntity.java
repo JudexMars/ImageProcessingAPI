@@ -30,6 +30,9 @@ public class ApplyFilterRequestEntity {
   @Column(name = "image_id", nullable = false)
   private UUID imageId;
 
+  @Column(name = "modified_image_id")
+  private UUID modifiedImageId;
+
   @ManyToOne
   private RequestStatus status;
 }

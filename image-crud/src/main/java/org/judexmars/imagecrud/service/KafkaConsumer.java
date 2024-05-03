@@ -1,8 +1,8 @@
 package org.judexmars.imagecrud.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.judexmars.imagecrud.dto.kafka.ImageStatusMessage;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
@@ -24,14 +24,10 @@ public class KafkaConsumer {
       topics = "images.done",
       groupId = "consumers-group-1",
       concurrency = "2",
-      properties = {
-          ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG + "=false",
-          ConsumerConfig.ISOLATION_LEVEL_CONFIG + "=read_committed",
-          ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG
-              + "=org.apache.kafka.clients.consumer.RoundRobinAssignor"
-      }
+      containerFactory = "kafkaListenerContainerFactory"
   )
-  public void consume(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
+  public void consume(ConsumerRecord<String, ImageStatusMessage> record,
+                      Acknowledgment acknowledgment) {
     log.info("""
         Получено следующее сообщение из топика {}:
         key: {},

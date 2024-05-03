@@ -1,6 +1,7 @@
 package org.judexmars.imagecrud.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,13 +46,19 @@ public class ImageFiltersService {
    * @param filters filter types
    * @return DTO with request id
    */
-  public ApplyImageFiltersResponseDto applyFilters(UUID imageId, List<FilterType> filters) {
-    imageService.getImageMeta(imageId);
+  public ApplyImageFiltersResponseDto applyFilters(UUID imageId,
+                                                   List<FilterType> filters,
+                                                   Map<String, String> props) {
+    var meta = imageService.getImageMeta(imageId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());
     var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImageId(imageId);
     var savedRequest = applyFilterRequestRepository.save(request);
     kafkaTemplate.send("images.wip",
-        new ImageStatusMessage(imageId, savedRequest.getRequestId(), filters));
+        new ImageStatusMessage(
+            meta.link(),
+            savedRequest.getRequestId().toString(),
+            filters,
+            props));
     return new ApplyImageFiltersResponseDto(savedRequest.getRequestId());
   }
 
@@ -95,9 +102,9 @@ public class ImageFiltersService {
     var value = record.value();
     var imageId = value.imageId();
     var requestId = value.requestId();
-    var request = getRequestEntity(requestId);
+    var request = getRequestEntity(UUID.fromString(requestId));
     request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
-    request.setImageId(imageId);
+    request.setImageId(UUID.fromString(imageId));
     applyFilterRequestRepository.save(request);
     ack.acknowledge();
   }

@@ -50,7 +50,7 @@ internal class ImageFiltersServiceTest {
         doReturn(Optional.of(RequestStatus().setName("WIP"))).whenever(requestStatusRepository).findByName("WIP")
 
         // When
-        val result = imageFiltersService.applyFilters(imageId, filters)
+        val result = imageFiltersService.applyFilters(imageId, filters, emptyMap())
 
         // Then
         assertEquals(responseDto, result)
@@ -84,7 +84,7 @@ internal class ImageFiltersServiceTest {
                 0,
                 0,
                 "",
-                ImageStatusMessage(imageId, requestId, emptyList())
+                ImageStatusMessage(imageId.toString(), requestId.toString(), emptyList(), emptyMap())
             ), ack
         )
 

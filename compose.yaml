@@ -208,6 +208,88 @@ services:
       KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
     networks:
       - image-crud-network
+  crop-processor:
+    build:
+      context: image-processor
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - image-crud-s3
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - reverse-colors-processor
+    secrets:
+      - ssl-keystore
+      - ssl-truststore
+    ports:
+      - 8081:8081
+    environment:
+      - PROPS_TYPE=CROP
+      - PROPS_GROUP=crop_consumer_group
+      - PROPS_CONCURRENCY=2
+      - PROPS_WIP_TOPIC=images.wip
+      - PROPS_DONE_TOPIC=images.done
+
+      - SERVER_PORT=8081
+      - MINIO_URL=http://image-crud-s3:9000
+      - MINIO_ACCESS-KEY=judex
+      - MINIO_SECRET-KEY=password
+      - MINIO_MAIN_BUCKET=minio-storage
+      - MINIO_MINOR_BUCKET=minio-temp
+      - MINIO_IMAGE-SIZE=10485760
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9082,kafka-2:9083,kafka-3:9084
+      - SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
+      - SPRING_KAFKA_PROPERTIES_SASL_MECHANISM=PLAIN
+      - SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/run/secrets/ssl-truststore
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/run/secrets/ssl-keystore
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
+    networks:
+      - image-crud-network
+  reverse-colors-processor:
+    build:
+      context: image-processor
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - redis
+      - image-crud-s3
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    secrets:
+      - ssl-keystore
+      - ssl-truststore
+    ports:
+      - 8082:8082
+    environment:
+      - PROPS_TYPE=REVERSE_COLORS
+      - PROPS_GROUP=reverse_colors_consumer_group
+      - PROPS_CONCURRENCY=2
+      - PROPS_WIP_TOPIC=images.wip
+      - PROPS_DONE_TOPIC=images.done
+
+      - SERVER_PORT=8082
+      - MINIO_URL=http://image-crud-s3:9000
+      - MINIO_ACCESS-KEY=judex
+      - MINIO_SECRET-KEY=password
+      - MINIO_MAIN_BUCKET=minio-storage
+      - MINIO_MINOR_BUCKET=minio-temp
+      - MINIO_IMAGE-SIZE=10485760
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9082,kafka-2:9083,kafka-3:9084
+      - SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
+      - SPRING_KAFKA_PROPERTIES_SASL_MECHANISM=PLAIN
+      - SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/run/secrets/ssl-truststore
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/run/secrets/ssl-keystore
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
+    networks:
+      - image-crud-network
 
 secrets:
   postgres-password:

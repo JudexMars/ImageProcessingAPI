@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.judexmars.imagecrud.dto.BaseResponseDto;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Auth")
 @Tag(name = "Image Filters Controller",
-        description = "API для применения фильтров к загруженным картинкам")
+    description = "API для применения фильтров к загруженным картинкам")
 public class ImageFiltersController {
 
   private final ImageFiltersService imageFiltersService;
@@ -54,15 +55,16 @@ public class ImageFiltersController {
           useReturnTypeSchema = true),
       @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class))),
+              schema = @Schema(implementation = BaseResponseDto.class))),
       @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class)))
+              schema = @Schema(implementation = BaseResponseDto.class)))
   })
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponseDto applyFilters(@PathVariable(name = "image-id") UUID imageId,
-                                                   @RequestParam List<FilterType> filters) {
-    return imageFiltersService.applyFilters(imageId, filters);
+                                                   @RequestParam List<FilterType> filters,
+                                                   @RequestParam Map<String, String> props) {
+    return imageFiltersService.applyFilters(imageId, filters, props);
   }
 
   /**
@@ -72,7 +74,7 @@ public class ImageFiltersController {
    */
   @Operation(summary = "Получение ИД измененного файла по ИД запроса", description = """
       В рамках данного метода необходимо найти и вернуть по ИД пользовательского запроса\s
-      ИД соответсвующего ему файла и статус, в котором находится процесс применения фильтров.
+      ИД соответствующего ему файла и статус, в котором находится процесс применения фильтров.
       По ИД оригинального изображения нужно убедиться, что ИД запроса относится к нему и\s
       что у пользователя есть доступ к данному изображению (оригинальному).
       """)
@@ -81,10 +83,10 @@ public class ImageFiltersController {
           useReturnTypeSchema = true),
       @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class))),
+              schema = @Schema(implementation = BaseResponseDto.class))),
       @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class)))
+              schema = @Schema(implementation = BaseResponseDto.class)))
   })
   @GetMapping(value = "/image/{image-id}/filters/{request-id}", produces = "application/json")
   public GetModifiedImageDto getModifiedImage(@PathVariable(name = "image-id") UUID imageId,

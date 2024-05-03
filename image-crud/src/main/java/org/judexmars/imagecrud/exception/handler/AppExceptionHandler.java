@@ -95,7 +95,7 @@ public class AppExceptionHandler {
    */
   @ExceptionHandler(
         {InvalidJwtException.class, ExpiredJwtException.class, UnsupportedJwtException.class,
-    MalformedJwtException.class, SignatureException.class})
+            MalformedJwtException.class, SignatureException.class})
   public ResponseEntity<BaseResponseDto> handleAccountJwtException() {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(new BaseResponseDto(false, messageRenderer.render("exception.jwt")));
