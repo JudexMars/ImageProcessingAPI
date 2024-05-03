@@ -12,6 +12,7 @@ import org.judexmars.imagecrud.exception.DeleteFileException;
 import org.judexmars.imagecrud.exception.ImageNotFoundException;
 import org.judexmars.imagecrud.exception.UploadFailedException;
 import org.judexmars.imagecrud.mapper.ImageMapper;
+import org.judexmars.imagecrud.model.ImageEntity;
 import org.judexmars.imagecrud.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,12 +40,9 @@ public class ImageService {
    * @return {@link ImageDto} representation of the image
    * @throws ImageNotFoundException if there's no image with this id
    */
-  public ImageDto getImageMeta(UUID id) throws ImageNotFoundException {
-    var imageOptional = imageRepository.findById(id);
-    if (imageOptional.isEmpty()) {
-      throw new ImageNotFoundException(String.valueOf(id));
-    }
-    return mapper.toImageDto(imageOptional.get());
+  public ImageDto getImageMeta(UUID id, UUID accountId) throws ImageNotFoundException {
+    var image = getImageMetaAsEntitySafely(id, accountId);
+    return mapper.toImageDto(image);
   }
 
   /**
@@ -54,8 +52,8 @@ public class ImageService {
    * @return binary file
    * @throws Exception if image is not found or can't be downloaded for some reason
    */
-  public byte[] downloadImage(UUID id) throws Exception {
-    var image = getImageMeta(id);
+  public byte[] downloadImage(UUID id, UUID accountId) throws Exception {
+    var image = getImageMeta(id, accountId);
     return minioService.downloadImage(image.link());
   }
 
@@ -83,8 +81,8 @@ public class ImageService {
    *
    * @param id id of the image to delete
    */
-  public void deleteImage(UUID id) {
-    var image = getImageMeta(id);
+  public void deleteImage(UUID id, UUID accountId) throws DeleteFileException {
+    var image = getImageMeta(id, accountId);
     imageRepository.deleteById(id);
     try {
       minioService.deleteImage(image.link());
@@ -104,5 +102,31 @@ public class ImageService {
         .stream()
         .map(mapper::toImageResponseDto)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Safely get image as entity.
+   *
+   * @param id id of the image
+   * @param accountId id of the account requesting this
+   * @return image entity
+   */
+  public ImageEntity getImageMetaAsEntitySafely(UUID id, UUID accountId) {
+    var image = getImageMetaAsEntity(id);
+    if (!image.getAuthor().getId().equals(accountId)) {
+      throw new ImageNotFoundException(String.valueOf(id));
+    }
+    return image;
+  }
+
+  /**
+   * Get image as entity.
+   *
+   * @param id id of the image
+   * @return image entity
+   */
+  ImageEntity getImageMetaAsEntity(UUID id) {
+    return imageRepository.findById(id)
+        .orElseThrow(() -> new ImageNotFoundException(String.valueOf(id)));
   }
 }

@@ -21,7 +21,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,8 +102,10 @@ public class ImageController {
   @GetMapping(value = "/image/{image-id}")
   public ResponseEntity<byte[]> downloadImage(@PathVariable(name = "image-id") UUID id)
       throws Exception {
-    var meta = imageService.getImageMeta(id);
-    var image = imageService.downloadImage(id);
+    var username = securityUtils.getLoggedInUsername();
+    var account = accountService.getByUsername(username);
+    var meta = imageService.getImageMeta(id, account.id());
+    var image = imageService.downloadImage(id, account.id());
     return ResponseEntity.ok()
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + meta.filename())
         .body(image);
@@ -132,7 +133,9 @@ public class ImageController {
   @PreAuthorize("hasAuthority('DELETE_IMAGE')")
   @DeleteMapping(value = "/image/{image-id}", produces = "application/json")
   public BaseResponseDto deleteImage(@PathVariable(name = "image-id") UUID id) {
-    imageService.deleteImage(id);
+    var username = securityUtils.getLoggedInUsername();
+    var account = accountService.getByUsername(username);
+    imageService.deleteImage(id, account.id());
     return new BaseResponseDto(true, messageRenderer.render("response.image.delete_successful"));
   }
 
@@ -154,7 +157,7 @@ public class ImageController {
   })
   @GetMapping(value = "/images", produces = "application/json")
   public GetImagesResponseDto getImages() {
-    var username = SecurityContextHolder.getContext().getAuthentication().getName();
+    var username = securityUtils.getLoggedInUsername();
     var account = accountService.getByUsername(username);
     return new GetImagesResponseDto(imageService.getImagesOfUser(account.id()));
   }
