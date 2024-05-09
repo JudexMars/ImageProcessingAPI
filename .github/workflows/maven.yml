@@ -71,7 +71,7 @@ jobs:
           python -m pop install --upgrade pip
           pip install -r cv-image-processor/requirements.txt
           pip install pytest pytest-cov
-          pytest --cov=cv-image-processor/src cv-image-processor/tests/ --cov-report=term --cov-fail-under=75 > coverage.txt
+          pytest --cov=cv-image-processor/src cv-image-processor/tests --cov-report=term --cov-fail-under=75 > coverage.txt
 
       - name: Upload coverage report to PR
         uses: peter-evans/create-or-update-comment@v4

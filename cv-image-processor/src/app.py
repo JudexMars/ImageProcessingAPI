@@ -139,8 +139,10 @@ def start_consumers(n, bootstrap_servers, topic_name, group_id):
 # Configure kafka connection
 my_bootstrap_servers = os.getenv('BOOTSTRAP_SERVERS',
                                  'localhost:9092')
-my_wip_topic = os.getenv('WIP_TOPIC', 'images.wip')
-my_done_topic = os.getenv('DONE_TOPIC', 'images.done')
+my_wip_topic = os.getenv('WIP_TOPIC',
+                         'images.wip')
+my_done_topic = os.getenv('DONE_TOPIC',
+                          'images.done')
 my_group_id = 'remove-background-consumer-group-1'
 consumers_amount = 2
 
