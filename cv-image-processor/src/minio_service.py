@@ -20,7 +20,11 @@ def upload_image(client, bucket_name, image_data):
 
         image_stream = io.BytesIO(image_data)
         link = str(uuid.uuid4())
-        client.put_object(bucket_name, link, image_stream, length=len(image_data))
+        client.put_object(
+            bucket_name,
+            link,
+            image_stream,
+            length=len(image_data))
         print(f"Uploaded image to {bucket_name}/{link}")
         return link
     except S3Error as e:

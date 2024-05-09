@@ -60,7 +60,9 @@ def process(message):
 
     output = remove(image_bytes)
 
-    redis_client.set(message.value["requestId"], message.value["imageId"], ex=86400)
+    redis_client.set(message.value["requestId"],
+                     message.value["imageId"],
+                     ex=86400)
 
     filters.remove('REMOVE_BACKGROUND')
     if not filters:
@@ -81,7 +83,8 @@ def process(message):
 
 def create_producer(bootstrap_servers, acks):
     return KafkaProducer(bootstrap_servers=bootstrap_servers,
-                         value_serializer=lambda x: json.dumps(x).encode('utf-8'),
+                         value_serializer=lambda x:
+                         json.dumps(x).encode('utf-8'),
                          acks=acks,
                          ssl_keyfile=ssl_keyfile,
                          ssl_certfile=ssl_certfile,
@@ -99,7 +102,8 @@ def consume_messages(consumer_id, bootstrap_servers, topic_name, group_id):
                              group_id=group_id,
                              bootstrap_servers=bootstrap_servers,
                              auto_offset_reset='earliest',
-                             value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+                             value_deserializer=lambda x:
+                             json.loads(x.decode('utf-8')),
                              ssl_cafile=ssl_cafile,
                              ssl_certfile=ssl_certfile,
                              ssl_keyfile=ssl_keyfile,
