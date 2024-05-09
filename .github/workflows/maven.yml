@@ -37,7 +37,7 @@ jobs:
       - name: Verify Python checkstyle
         run: |
           python -m pip install --upgrade pip
-          pip install -r cv-image-processor/requirements.txt
+#          pip install -r cv-image-processor/requirements.txt
           pip install flake8
           flake8 cv-image-processor/src --statistics --count
 
@@ -49,6 +49,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
       - name: Run java tests
         run: |
           mvn clean install
@@ -62,21 +65,16 @@ jobs:
           min-coverage-changed-files: 75
           title: Code Coverage
           update-comment: true
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r cv-image-processor/requirements.txt
-          pip install pytest pytest-cov
 
       - name: Run pytest with coverage
-        run: pytest --cov=cv-image-processor/src cv-image-processor/tests/ --cov-report=term --cov-fail-under=75 > coverage.txt
+        run: |
+          python -m pop install --upgrade pip
+          pip install -r cv-image-processor/requirements.txt
+          pip install pytest pytest-cov
+          pytest --cov=cv-image-processor/src cv-image-processor/tests/ --cov-report=term --cov-fail-under=75 > coverage.txt
 
       - name: Upload coverage report to PR
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
@@ -84,6 +82,7 @@ jobs:
             ${{ steps.coverage.outputs.report }}
             ```
           token: ${{ secrets.GITHUB_TOKEN }}
+          update-comment: true
   deploy:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
