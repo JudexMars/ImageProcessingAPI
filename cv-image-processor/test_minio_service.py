@@ -2,7 +2,7 @@ import unittest
 import uuid
 from unittest.mock import patch, MagicMock
 
-from src.minio_service import create_minio_client, upload_image, download_image
+from minio_service import create_minio_client, upload_image, download_image
 
 
 class TestMinioFunctions(unittest.TestCase):
