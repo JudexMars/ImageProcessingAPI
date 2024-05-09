@@ -12,7 +12,8 @@ class TestImageProcessor(unittest.TestCase):
     @patch('app.download_image')
     @patch('app.upload_image')
     @patch('app.my_producer.send')
-    def test_process(self, mock_send, mock_upload, mock_download, mock_redis_get, mock_redis_set):
+    def test_process(self, mock_send, mock_upload,
+                     mock_download, mock_redis_get):
         # Given
         image = Image.new('RGB', (100, 100), 'red')
         img_byte_arr = BytesIO()
@@ -24,13 +25,17 @@ class TestImageProcessor(unittest.TestCase):
         mock_upload.return_value = 'new_image_link'
 
         message = Mock()
-        message.value = {'requestId': 'req123', 'filters': ['REMOVE_BACKGROUND'], 'imageId': 'test_image_id'}
+        message.value = {'requestId': 'req123',
+                         'filters': ['REMOVE_BACKGROUND'],
+                         'imageId': 'test_image_id'}
 
         # When
         process(message)
 
         # Then
-        mock_download.assert_called_once_with(ANY, 'minio-storage', 'test_image_id')
+        mock_download.assert_called_once_with(ANY,
+                                              'minio-storage',
+                                              'test_image_id')
         mock_upload.assert_called_once()
         mock_send.assert_called_once()
 
@@ -48,7 +53,9 @@ class TestImageProcessor(unittest.TestCase):
         # given
         mock_consumer_instance = mock_kafka_consumer.return_value
         mock_consumer_instance.__iter__.return_value = iter([
-            Mock(value=json.dumps({'filters': ['REMOVE_BACKGROUND'], 'imageId': 'test_image_id'}).encode('utf-8'))
+            Mock(value=json.dumps({'filters': ['REMOVE_BACKGROUND'],
+                                   'imageId': 'test_image_id'})
+                 .encode('utf-8'))
         ])
 
         # when

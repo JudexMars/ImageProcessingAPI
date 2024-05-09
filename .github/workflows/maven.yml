@@ -38,7 +38,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8
-          flake8 cv-image-processor/src --statistics --count
+          flake8 cv-image-processor/*.py --statistics --count
 
   tests:
     runs-on: ubuntu-latest
@@ -73,14 +73,19 @@ jobs:
           cd cv-image-processor
           pytest --cov=. --cov-report=term --cov-fail-under=75 | tee coverage.txt
 
+      - name: Load coverage report
+        id: coverage_report
+        run: echo "::set-output name=content::$(cat cv-image-processor/coverage.txt)"
+
       - name: Upload coverage report to PR
+        if: github.event_name == 'pull_request'
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             ## Python Coverage Report
             ```
-            $(cat cv-image-processor/coverage.txt)
+            ${{ steps.coverage_report.outputs.content }}
             ```
           token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
