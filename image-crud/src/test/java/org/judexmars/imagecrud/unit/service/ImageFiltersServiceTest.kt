@@ -4,6 +4,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto
 import org.judexmars.imagecrud.dto.imagefilters.FilterType
 import org.judexmars.imagecrud.dto.kafka.ImageStatusMessage
+import org.judexmars.imagecrud.model.AccountEntity
 import org.judexmars.imagecrud.model.ApplyFilterRequestEntity
 import org.judexmars.imagecrud.model.ImageEntity
 import org.judexmars.imagecrud.model.RequestStatus
@@ -14,14 +15,18 @@ import org.judexmars.imagecrud.service.ImageService
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.mock
-import org.mockito.kotlin.*
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 
 internal class ImageFiltersServiceTest {
-
     private val kafkaTemplate: KafkaTemplate<String, ImageStatusMessage> = mock()
 
     private val imageService: ImageService = mock()
@@ -36,14 +41,15 @@ internal class ImageFiltersServiceTest {
     @DisplayName("Apply 2 filters to some image")
     fun applyFiltersToImage() {
         // Given
-        val imageFiltersService = ImageFiltersService(
-            kafkaTemplate,
-            imageService,
-            mock(),
-            applyFilterRequestRepository,
-            requestStatusRepository,
-            mock()
-        )
+        val imageFiltersService =
+            ImageFiltersService(
+                kafkaTemplate,
+                imageService,
+                mock(),
+                applyFilterRequestRepository,
+                requestStatusRepository,
+                mock(),
+            )
         val imageId = UUID.randomUUID()
         val filters = listOf(FilterType.CROP, FilterType.REVERSE_COLORS)
         val savedRequest = ApplyFilterRequestEntity().setRequestId(UUID.randomUUID())
@@ -66,22 +72,30 @@ internal class ImageFiltersServiceTest {
     @DisplayName("Consume done image")
     fun consumeDoneImage() {
         // Given
-        val imageFiltersService = ImageFiltersService(
-            kafkaTemplate,
-            imageService,
-            mock(),
-            applyFilterRequestRepository,
-            requestStatusRepository,
-            mock()
-        )
+        val imageFiltersService =
+            ImageFiltersService(
+                kafkaTemplate,
+                imageService,
+                mock(),
+                applyFilterRequestRepository,
+                requestStatusRepository,
+                mock(),
+            )
         val imageId = UUID.randomUUID()
         val requestId = UUID.randomUUID()
-        val requestEntity = ApplyFilterRequestEntity().apply {
-            setRequestId(requestId)
-        }
+        val requestEntity =
+            ApplyFilterRequestEntity().apply {
+                setRequestId(requestId)
+                setImage(ImageEntity().setId(imageId))
+            }
 
         doReturn(Optional.of(requestEntity)).whenever(applyFilterRequestRepository).findById(requestId)
         doReturn(Optional.of(RequestStatus().setName("DONE"))).whenever(requestStatusRepository).findByName("DONE")
+        doReturn(ImageEntity().setId(imageId).setAuthor(AccountEntity()).setFilename("")).whenever(
+            imageService,
+        ).getImageMetaAsEntity(
+            any(),
+        )
 
         // When
         imageFiltersService.consumeDoneImage(
@@ -90,8 +104,9 @@ internal class ImageFiltersServiceTest {
                 0,
                 0,
                 "",
-                ImageStatusMessage(imageId.toString(), requestId.toString(), emptyList(), emptyMap())
-            ), ack
+                ImageStatusMessage(imageId.toString(), requestId.toString(), emptyList(), emptyMap()),
+            ),
+            ack,
         )
 
         // Then

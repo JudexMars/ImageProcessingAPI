@@ -125,7 +125,7 @@ public class ImageService {
    * @param id id of the image
    * @return image entity
    */
-  ImageEntity getImageMetaAsEntity(UUID id) {
+  public ImageEntity getImageMetaAsEntity(UUID id) {
     return imageRepository.findById(id)
         .orElseThrow(() -> new ImageNotFoundException(String.valueOf(id)));
   }

@@ -1,4 +1,5 @@
-import json, unittest
+import json
+import unittest
 from io import BytesIO
 from unittest.mock import patch, Mock, ANY
 from src.app import process, create_producer, consume_messages, start_consumers

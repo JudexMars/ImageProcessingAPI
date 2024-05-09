@@ -4,7 +4,10 @@ import threading
 import redis
 
 from kafka import KafkaProducer, KafkaConsumer
-from minio_service import *
+from minio_service import (
+    create_minio_client,
+    download_image,
+    upload_image)
 from rembg import remove
 
 # Configure redis connection
@@ -47,9 +50,13 @@ def process(message):
     if filters[0] != 'REMOVE_BACKGROUND':
         return
 
-    image_bytes = download_image(minio_client, my_main_bucket_name, data['imageId'])
+    image_bytes = download_image(minio_client,
+                                 my_main_bucket_name,
+                                 data['imageId'])
     if image_bytes is None:
-        image_bytes = download_image(minio_client, my_minor_bucket_name, data['imageId'])
+        image_bytes = download_image(minio_client,
+                                     my_minor_bucket_name,
+                                     data['imageId'])
 
     output = remove(image_bytes)
 
@@ -57,9 +64,13 @@ def process(message):
 
     filters.remove('REMOVE_BACKGROUND')
     if not filters:
-        next_link = upload_image(minio_client, my_main_bucket_name, output)
+        next_link = upload_image(minio_client,
+                                 my_main_bucket_name,
+                                 output)
     else:
-        next_link = upload_image(minio_client, my_minor_bucket_name, output)
+        next_link = upload_image(minio_client,
+                                 my_minor_bucket_name,
+                                 output)
     data['imageId'] = next_link
 
     if not filters:
@@ -111,7 +122,10 @@ def consume_messages(consumer_id, bootstrap_servers, topic_name, group_id):
 def start_consumers(n, bootstrap_servers, topic_name, group_id):
     threads = []
     for i in range(n):
-        t = threading.Thread(target=consume_messages, args=(i, bootstrap_servers, topic_name, group_id))
+        t = threading.Thread(target=consume_messages,
+                             args=(i, bootstrap_servers,
+                                   topic_name,
+                                   group_id))
         threads.append(t)
         t.start()
     for t in threads:
@@ -119,11 +133,15 @@ def start_consumers(n, bootstrap_servers, topic_name, group_id):
 
 
 # Configure kafka connection
-my_bootstrap_servers = os.getenv('BOOTSTRAP_SERVERS', 'localhost:9092')
+my_bootstrap_servers = os.getenv('BOOTSTRAP_SERVERS',
+                                 'localhost:9092')
 my_wip_topic = os.getenv('WIP_TOPIC', 'images.wip')
 my_done_topic = os.getenv('DONE_TOPIC', 'images.done')
 my_group_id = 'remove-background-consumer-group-1'
 consumers_amount = 2
 
 my_producer = create_producer(my_bootstrap_servers, 'all')
-start_consumers(consumers_amount, my_bootstrap_servers, my_wip_topic, my_group_id)
+start_consumers(consumers_amount,
+                my_bootstrap_servers,
+                my_wip_topic,
+                my_group_id)
