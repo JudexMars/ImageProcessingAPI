@@ -13,7 +13,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
-import org.springframework.kafka.core.*
+import org.springframework.kafka.core.ConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaProducerFactory
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties.AckMode
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
@@ -23,7 +27,6 @@ import org.springframework.kafka.support.serializer.JsonSerializer
 class KafkaConfiguration(
     private val properties: KafkaProperties,
 ) {
-
     @Bean
     fun producerFactory(): ProducerFactory<String, ImageStatusMessage> {
         val props = properties.buildProducerProperties(null).toMutableMap()
@@ -52,6 +55,7 @@ class KafkaConfiguration(
         props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
         props[JsonDeserializer.VALUE_DEFAULT_TYPE] = ImageStatusMessage::class.java
         props[JsonDeserializer.USE_TYPE_INFO_HEADERS] = false
+        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
         props[ConsumerConfig.GROUP_ID_CONFIG] = processorProperties.group
         props[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
         props[ConsumerConfig.ISOLATION_LEVEL_CONFIG] = "read_committed"
@@ -65,7 +69,7 @@ class KafkaConfiguration(
     ): ConcurrentKafkaListenerContainerFactory<String, ImageStatusMessage> {
         return ConcurrentKafkaListenerContainerFactory<String, ImageStatusMessage>().apply {
             with(containerProperties) {
-                setAckMode(AckMode.MANUAL)
+                ackMode = AckMode.MANUAL
                 setAutoStartup(true)
                 setConcurrency(processorProperties.concurrency)
                 consumerFactory = consumerFactory(processorProperties)

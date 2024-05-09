@@ -1,14 +1,12 @@
 package org.judexmars.imagecrud.service;
 
-import io.minio.BucketExistsArgs;
-import io.minio.GetObjectArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
+import io.minio.*;
+import io.minio.messages.*;
 import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.time.ZonedDateTime;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +38,30 @@ public class S3Service {
   @SneakyThrows
   public void init() {
     log.info(properties.toString());
-    if (!client.bucketExists(BucketExistsArgs.builder().bucket(properties.getBucket()).build())) {
-      client.makeBucket(MakeBucketArgs.builder().bucket(properties.getBucket()).build());
+    if (!client.bucketExists(BucketExistsArgs.builder()
+        .bucket(properties.getMainBucket()).build())) {
+      client.makeBucket(MakeBucketArgs.builder().bucket(properties.getMainBucket()).build());
+    }
+    if (!client.bucketExists(BucketExistsArgs.builder()
+        .bucket(properties.getMinorBucket()).build())) {
+      client.makeBucket(MakeBucketArgs.builder().bucket(properties.getMinorBucket()).build());
+
+      var rules = new LinkedList<LifecycleRule>();
+      rules.add(
+          new LifecycleRule(
+              Status.ENABLED,
+              null,
+              new Expiration((ZonedDateTime) null, properties.getTtl(), null),
+              new RuleFilter("logs/"),
+              "expire-bucket",
+              null,
+              null,
+              null));
+      var config = new LifecycleConfiguration(rules);
+
+      client.setBucketLifecycle(SetBucketLifecycleArgs.builder()
+          .bucket(properties.getMinorBucket())
+          .config(config).build());
     }
   }
 
@@ -62,7 +82,7 @@ public class S3Service {
     InputStream inputStream = new ByteArrayInputStream(file.getBytes());
     client.putObject(
         PutObjectArgs.builder()
-            .bucket(properties.getBucket())
+            .bucket(properties.getMainBucket())
             .object(fileId)
             .stream(inputStream, file.getSize(), properties.getImageSize())
             .contentType(file.getContentType())
@@ -82,7 +102,7 @@ public class S3Service {
   public byte[] downloadImage(String link) throws Exception {
     return IOUtils.toByteArray(client.getObject(
         GetObjectArgs.builder()
-            .bucket(properties.getBucket())
+            .bucket(properties.getMainBucket())
             .object(link)
             .build()
     ));
@@ -114,9 +134,26 @@ public class S3Service {
   public void deleteImage(String link) throws Exception {
     client.removeObject(
         RemoveObjectArgs.builder()
-            .bucket(properties.getBucket())
+            .bucket(properties.getMainBucket())
             .object(link)
             .build()
     );
+  }
+
+  /**
+   * Get size of image file.
+   *
+   * @param link link to the file
+   * @return its size in bytes
+   * @throws Exception if the file cannot be found
+   */
+  public long getImageSize(String link) throws Exception {
+    var meta = client.statObject(
+        StatObjectArgs.builder()
+            .bucket(properties.getMainBucket())
+            .object(link)
+            .build()
+    );
+    return meta.size();
   }
 }

@@ -4,7 +4,7 @@ data class S3ImageDto(
     val link: String,
     val bytes: ByteArray,
     val contentType: String,
-    val size: Long
+    val size: Long,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -2,15 +2,15 @@ import unittest
 import uuid
 from unittest.mock import patch, MagicMock
 
-from my_minio import create_minio_client, upload_image, download_image
+from src.minio_service import create_minio_client, upload_image, download_image
 
 
 class TestMinioFunctions(unittest.TestCase):
 
-    @patch('my_minio.Minio')
+    @patch('minio_service.Minio')
     def test_create_minio_client(self, mock_minio):
         """Test creation of a Minio client."""
-        client = create_minio_client('http://localhost:9000', 'minioadmin', 'minioadmin')
+        client = create_minio_client(endpoint='http://localhost:9000', access_key='minioadmin', secret_key='minioadmin')
         mock_minio.assert_called_once_with(
             endpoint='http://localhost:9000',
             access_key='minioadmin',
@@ -19,7 +19,7 @@ class TestMinioFunctions(unittest.TestCase):
         )
         self.assertIsNotNone(client)
 
-    @patch('my_minio.Minio')
+    @patch('minio_service.Minio')
     def test_upload_image(self, mock_minio):
         """Test uploading an image successfully."""
         client = MagicMock()
@@ -31,14 +31,14 @@ class TestMinioFunctions(unittest.TestCase):
         client.put_object = MagicMock()
         link = uuid.uuid4()
 
-        with patch('my_minio.uuid.uuid4', return_value=link):
+        with patch('minio_service.uuid.uuid4', return_value=link):
             link_returned = upload_image(client, 'test-bucket', b'test-image-data')
-            self.assertEqual(link_returned, link)
+            self.assertEqual(link_returned, str(link))
             client.make_bucket.assert_called_once_with('test-bucket')
-            client.put_object.assert_called_once_with('test-bucket', link, unittest.mock.ANY,
+            client.put_object.assert_called_once_with('test-bucket', str(link), unittest.mock.ANY,
                                                       length=len(b'test-image-data'))
 
-    @patch('my_minio.Minio')
+    @patch('minio_service.Minio')
     def test_download_image(self, mock_minio):
         """Test downloading an image."""
         client = MagicMock()

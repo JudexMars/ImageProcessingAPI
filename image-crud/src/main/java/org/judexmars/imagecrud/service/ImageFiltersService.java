@@ -12,10 +12,13 @@ import org.judexmars.imagecrud.dto.imagefilters.BasicRequestStatus;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
 import org.judexmars.imagecrud.dto.kafka.ImageStatusMessage;
+import org.judexmars.imagecrud.exception.ImageNotFoundException;
 import org.judexmars.imagecrud.exception.RequestNotFoundException;
 import org.judexmars.imagecrud.model.ApplyFilterRequestEntity;
+import org.judexmars.imagecrud.model.ImageEntity;
 import org.judexmars.imagecrud.model.RequestStatus;
 import org.judexmars.imagecrud.repository.ApplyFilterRequestRepository;
+import org.judexmars.imagecrud.repository.ImageRepository;
 import org.judexmars.imagecrud.repository.RequestStatusRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -35,9 +38,12 @@ public class ImageFiltersService {
 
   private final ImageService imageService;
 
+  private final ImageRepository imageRepository;
+
   private final ApplyFilterRequestRepository applyFilterRequestRepository;
 
   private final RequestStatusRepository requestStatusRepository;
+  private final S3Service s3Service;
 
   /**
    * Applies filters to the selected image asynchronously.
@@ -57,7 +63,7 @@ public class ImageFiltersService {
     var savedRequest = applyFilterRequestRepository.save(request);
     kafkaTemplate.send("images.wip",
         new ImageStatusMessage(
-            meta.getId().toString(),
+            meta.getLink(),
             savedRequest.getRequestId().toString(),
             filters,
             props));
@@ -78,7 +84,12 @@ public class ImageFiltersService {
                                                         UUID accountId) {
     imageService.getImageMeta(imageId, accountId);
     var request = getRequestEntity(requestId);
-    return new GetModifiedImageDto(request.getImage().getId(),
+    var image = request.getImage();
+    var modifiedImage = request.getModifiedImage();
+    if (modifiedImage != null) {
+      image = modifiedImage;
+    }
+    return new GetModifiedImageDto(image.getId(),
         BasicRequestStatus.valueOf(request.getStatus().getName()));
   }
 
@@ -107,9 +118,21 @@ public class ImageFiltersService {
     var imageId = value.imageId();
     var requestId = value.requestId();
     var request = getRequestEntity(UUID.fromString(requestId));
+    var originalImage = imageService.getImageMetaAsEntity(request.getImage().getId());
     request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
-    request.setImage(imageService.getImageMetaAsEntity(UUID.fromString(imageId)));
-    applyFilterRequestRepository.save(request);
+    try {
+      request.setModifiedImage(
+          imageRepository.save(
+              new ImageEntity()
+                  .setAuthor(originalImage.getAuthor())
+                  .setLink(imageId)
+                  .setSize((int) s3Service.getImageSize(imageId))
+                  .setFilename(requestId + "_" + originalImage.getFilename()))
+      );
+      applyFilterRequestRepository.save(request);
+    } catch (Exception ex) {
+      throw new ImageNotFoundException(imageId);
+    }
     ack.acknowledge();
   }
 

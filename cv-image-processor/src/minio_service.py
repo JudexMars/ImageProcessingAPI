@@ -6,7 +6,7 @@ from minio.error import S3Error
 
 
 def create_minio_client(endpoint, access_key, secret_key, secure=False):
-    client = Minio(endpoint,
+    client = Minio(endpoint=endpoint,
                    access_key=access_key,
                    secret_key=secret_key,
                    secure=secure)
@@ -19,7 +19,7 @@ def upload_image(client, bucket_name, image_data):
             client.make_bucket(bucket_name)
 
         image_stream = io.BytesIO(image_data)
-        link = uuid.uuid4()
+        link = str(uuid.uuid4())
         client.put_object(bucket_name, link, image_stream, length=len(image_data))
         print(f"Uploaded image to {bucket_name}/{link}")
         return link
@@ -35,3 +35,4 @@ def download_image(client, bucket_name, link):
         return image_data
     except S3Error as e:
         print(f"Failed to download {link} from bucket {bucket_name}: {e}")
+        return None

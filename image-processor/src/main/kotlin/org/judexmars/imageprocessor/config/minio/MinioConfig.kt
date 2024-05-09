@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @Slf4j
 @EnableConfigurationProperties(
-    MinioProperties::class
+    MinioProperties::class,
 )
 class MinioConfig {
     /**

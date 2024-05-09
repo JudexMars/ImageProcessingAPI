@@ -39,8 +39,10 @@ internal class ImageFiltersServiceTest {
         val imageFiltersService = ImageFiltersService(
             kafkaTemplate,
             imageService,
+            mock(),
             applyFilterRequestRepository,
-            requestStatusRepository
+            requestStatusRepository,
+            mock()
         )
         val imageId = UUID.randomUUID()
         val filters = listOf(FilterType.CROP, FilterType.REVERSE_COLORS)
@@ -67,8 +69,10 @@ internal class ImageFiltersServiceTest {
         val imageFiltersService = ImageFiltersService(
             kafkaTemplate,
             imageService,
+            mock(),
             applyFilterRequestRepository,
-            requestStatusRepository
+            requestStatusRepository,
+            mock()
         )
         val imageId = UUID.randomUUID()
         val requestId = UUID.randomUUID()

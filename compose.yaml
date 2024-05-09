@@ -5,7 +5,7 @@ services:
       dockerfile: docker/Dockerfile
     depends_on:
       - image-crud-postgres
-      - redis
+      - image-crud-redis
       - image-crud-s3
       - kafka-1
       - kafka-2
@@ -19,8 +19,9 @@ services:
     environment:
       - SERVER_PORT=8080
       - SPRING_DATASOURCE_URL=jdbc:postgresql://image-crud-postgres/image-db
-      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=image-crud-redis
       - MINIO_URL=http://image-crud-s3:9000
+      - MINIO_TTL=1
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9082,kafka-2:9083,kafka-3:9084
       - SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
       - SPRING_KAFKA_PROPERTIES_SASL_MECHANISM=PLAIN
@@ -32,14 +33,14 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
-      - image-crud-network
+      - shared-network
   image-crud-postgres:
     image: postgres
     restart: always
     secrets:
       - postgres-password
     networks:
-      - image-crud-network
+      - shared-network
     environment:
       - POSTGRES_DB=image-db
       - POSTGRES_USER=judex
@@ -61,18 +62,17 @@ services:
       - "9001:9001"
     command: server /data --console-address ":9001"
     networks:
-      - image-crud-network
-  redis:
+      - shared-network
+  image-crud-redis:
     image: redis:latest
     restart: always
-    container_name: redis
     ports:
       - "6379:6379"
     command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_
     volumes:
-      - redis-volume:/data
+      - redis-volume-crud:/data
     networks:
-      - image-crud-network
+      - shared-network
 
   kafka-1:
     image: confluentinc/cp-kafka:latest
@@ -108,7 +108,15 @@ services:
       KAFKA_BROKER_ID: 1
       CLUSTER_ID: L0ZEQh1yTbGhNNUE7-6wSQ
     networks:
-      - image-crud-network
+      - shared-network
+    volumes:
+      - ./image-crud/environment/kafka/check_kafka_topics.sh:/usr/bin/check_kafka_topics.sh
+      - ./image-crud/environment/kafka/kafka_client.properties:/usr/bin/kafka_client.properties
+    healthcheck:
+      test: bash /usr/bin/check_kafka_topics.sh kafka-1:9092 /usr/bin/kafka_client.properties
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
   kafka-2:
     image: confluentinc/cp-kafka:latest
@@ -144,7 +152,15 @@ services:
       KAFKA_BROKER_ID: 2
       CLUSTER_ID: L0ZEQh1yTbGhNNUE7-6wSQ
     networks:
-      - image-crud-network
+      - shared-network
+    volumes:
+      - ./image-crud/environment/kafka/check_kafka_topics.sh:/usr/bin/check_kafka_topics.sh
+      - ./image-crud/environment/kafka/kafka_client.properties:/usr/bin/kafka_client.properties
+    healthcheck:
+      test: bash /usr/bin/check_kafka_topics.sh kafka-2:9093 /usr/bin/kafka_client.properties
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
   kafka-3:
     image: confluentinc/cp-kafka:latest
@@ -180,7 +196,15 @@ services:
       KAFKA_BROKER_ID: 3
       CLUSTER_ID: L0ZEQh1yTbGhNNUE7-6wSQ
     networks:
-      - image-crud-network
+      - shared-network
+    volumes:
+      - ./image-crud/environment/kafka/check_kafka_topics.sh:/usr/bin/check_kafka_topics.sh
+      - ./image-crud/environment/kafka/kafka_client.properties:/usr/bin/kafka_client.properties
+    healthcheck:
+      test: bash /usr/bin/check_kafka_topics.sh kafka-3:9094 /usr/bin/kafka_client.properties
+      interval: 30s
+      timeout: 10s
+      retries: 10
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
@@ -207,17 +231,22 @@ services:
       KAFKA_CLUSTERS_0_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ''
       KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";'
     networks:
-      - image-crud-network
+      - shared-network
   crop-processor:
     build:
       context: image-processor
       dockerfile: docker/Dockerfile
     depends_on:
-      - image-crud-s3
-      - kafka-1
-      - kafka-2
-      - kafka-3
-      - reverse-colors-processor
+      image-crud-s3:
+        condition: service_started
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      crop-processor-redis:
+        condition: service_started
     secrets:
       - ssl-keystore
       - ssl-truststore
@@ -231,6 +260,9 @@ services:
       - PROPS_DONE_TOPIC=images.done
 
       - SERVER_PORT=8081
+      - SPRING_DATA_REDIS_HOST=crop-processor-redis
+      - SPRING_DATA_REDIS_PORT=6380
+      - SPRING_DATA_REDIS_PASSWORD=6k_j76,dDUl_
       - MINIO_URL=http://image-crud-s3:9000
       - MINIO_ACCESS-KEY=judex
       - MINIO_SECRET-KEY=password
@@ -248,17 +280,22 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
-      - image-crud-network
+      - shared-network
   reverse-colors-processor:
     build:
       context: image-processor
       dockerfile: docker/Dockerfile
     depends_on:
-      - redis
-      - image-crud-s3
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      image-crud-s3:
+        condition: service_started
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      reverse-colors-processor-redis:
+        condition: service_started
     secrets:
       - ssl-keystore
       - ssl-truststore
@@ -272,6 +309,9 @@ services:
       - PROPS_DONE_TOPIC=images.done
 
       - SERVER_PORT=8082
+      - SPRING_DATA_REDIS_HOST=reverse-colors-processor-redis
+      - SPRING_DATA_REDIS_PORT=6381
+      - SPRING_DATA_REDIS_PASSWORD=6k_j76,dDUl_
       - MINIO_URL=http://image-crud-s3:9000
       - MINIO_ACCESS-KEY=judex
       - MINIO_SECRET-KEY=password
@@ -289,7 +329,72 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
-      - image-crud-network
+      - shared-network
+  remove-background-processor:
+    build:
+      context: cv-image-processor
+      dockerfile: docker/Dockerfile
+    depends_on:
+      image-crud-s3:
+        condition: service_started
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      remove-background-processor-redis:
+        condition: service_started
+    environment:
+      MINIO_ENDPOINT: image-crud-s3:9000
+      MINIO_ACCESS_KEY: judex
+      MINIO_SECRET_KEY: password
+      KAFKA_SSL_KEYFILE: /run/secrets/ssl-keyfile
+      KAFKA_SSL_CERTFILE: /run/secrets/ssl_certfile
+      KAFKA_SASL_MECHANISM: PLAIN
+      KAFKA_SSL_CAFILE: /run/secrets/ssl_cafile
+      KAFKA_SECURITY_PROTOCOL: SASL_SSL
+      KAFKA_SASL_PLAIN_USERNAME: admin
+      KAFKA_SASL_PLAIN_PASSWORD: admin-secret
+      WIP_TOPIC: images.wip
+      DONE_TOPIC: images.done
+      BOOTSTRAP_SERVERS: kafka-1:9082,kafka-2:9083,kafka-3:9084
+    secrets:
+      - ssl-keyfile
+      - ssl_certfile
+      - ssl_cafile
+    networks:
+      - shared-network
+  crop-processor-redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6380:6380"
+    command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_ --port 6380
+    volumes:
+      - redis-volume-crop:/data
+    networks:
+      - shared-network
+  reverse-colors-processor-redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6381:6381"
+    command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_ --port 6381
+    volumes:
+      - redis-volume-reverse-colors:/data
+    networks:
+      - shared-network
+  remove-background-processor-redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6382:6382"
+    command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_ --port 6382
+    volumes:
+      - redis-volume-remove-background:/data
+    networks:
+      - shared-network
 
 secrets:
   postgres-password:
@@ -300,11 +405,21 @@ secrets:
     file: image-crud/environment/kafka/kafka.server.truststore.jks
   jaas:
     file: image-crud/environment/kafka/kafka_server_jaas.conf
+  ssl-keyfile:
+    file: image-crud/environment/kafka/client-key.pem
+  ssl_certfile:
+    file: image-crud/environment/kafka/client-cert.pem
+  ssl_cafile:
+    file: image-crud/environment/kafka/caroot.crt
 networks:
-  image-crud-network:
+  shared-network:
     driver: bridge
 
 volumes:
   postgres-volume:
-  redis-volume:
+  redis-volume-crud:
   minio-volume:
+  redis-volume-crop:
+  redis-volume-reverse-colors:
+  redis-volume-remove-background:
+  

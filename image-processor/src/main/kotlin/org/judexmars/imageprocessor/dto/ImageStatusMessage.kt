@@ -1,7 +1,6 @@
 package org.judexmars.imageprocessor.dto
 
-import org.judexmars.imageprocessor.config.ProcessorType
-import java.util.*
+import java.util.UUID
 
 /**
  * Message that is sent to kafka after user requests applying filters.
@@ -13,6 +12,6 @@ import java.util.*
 data class ImageStatusMessage(
     val imageId: UUID,
     val requestId: UUID,
-    val filters: List<ProcessorType>,
-    val props: Map<String, String>
+    val filters: List<String>,
+    val props: Map<String, String>,
 )

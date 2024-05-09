@@ -4,9 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "props")
 data class ProcessorProperties(
-    val type: ProcessorType,
+    val type: String,
     val group: String,
     val concurrency: Int,
     val wipTopic: String,
-    val doneTopic: String
+    val doneTopic: String,
 )

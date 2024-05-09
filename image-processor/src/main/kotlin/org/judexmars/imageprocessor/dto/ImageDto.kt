@@ -11,7 +11,7 @@ package org.judexmars.imageprocessor.dto
 data class ImageDto(
     val size: Long,
     val link: String,
-    val bytes: ByteArray
+    val bytes: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

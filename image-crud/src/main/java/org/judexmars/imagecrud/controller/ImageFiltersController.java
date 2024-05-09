@@ -21,6 +21,7 @@ import org.judexmars.imagecrud.utils.SecurityUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,7 +70,7 @@ public class ImageFiltersController {
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponseDto applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters,
-                                                   @RequestParam Map<String, String> props) {
+                                                   @RequestBody Map<String, String> props) {
     var loggedInUsername = securityUtils.getLoggedInUsername();
     var account = accountService.getByUsername(loggedInUsername);
     return imageFiltersService.applyFilters(imageId, filters, props, account.id());
