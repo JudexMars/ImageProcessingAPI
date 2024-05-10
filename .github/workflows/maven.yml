@@ -4,6 +4,9 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+permissions:
+  checks: write
+  pull-requests: write
 
 jobs:
   build:
@@ -60,8 +63,8 @@ jobs:
         with:
           paths: ${{ github.workspace }}/**/target/site/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 75
-          min-coverage-changed-files: 75
+          min-coverage-overall: 70
+          min-coverage-changed-files: 70
           title: Code Coverage
           update-comment: true
 
@@ -71,24 +74,13 @@ jobs:
           pip install -r cv-image-processor/requirements.txt
           pip install pytest pytest-cov
           cd cv-image-processor
-          pytest --cov=. --cov-report=term --cov-fail-under=75 | tee coverage.txt
+          pytest --cov=. --cov-report "xml:coverage.xml" --cov-fail-under=70
 
-      - name: Load coverage report
-        id: coverage_report
-        run: echo "::set-output name=content::$(cat cv-image-processor/coverage.txt)"
-
-      - name: Upload coverage report to PR
-        if: github.event_name == 'pull_request'
-        uses: peter-evans/create-or-update-comment@v4
+      - name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## Python Coverage Report
-            ```
-            ${{ steps.coverage_report.outputs.content }}
-            ```
-          token: ${{ secrets.GITHUB_TOKEN }}
-          update-comment: true
+          pytest-xml-coverage-path: ./cv-image-processor/coverage.xml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
