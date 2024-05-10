@@ -13,7 +13,7 @@ class TestImageProcessor(unittest.TestCase):
     @patch('app.upload_image')
     @patch('app.my_producer.send')
     def test_process(self, mock_send, mock_upload,
-                     mock_download, mock_redis_get):
+                     mock_download, mock_redis_get, mock_redis_set):
         # Given
         image = Image.new('RGB', (100, 100), 'red')
         img_byte_arr = BytesIO()
