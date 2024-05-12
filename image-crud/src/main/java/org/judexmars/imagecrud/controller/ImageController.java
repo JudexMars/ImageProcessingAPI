@@ -104,11 +104,10 @@ public class ImageController {
       throws Exception {
     var username = securityUtils.getLoggedInUsername();
     var account = accountService.getByUsername(username);
-    var meta = imageService.getImageMeta(id, account.id());
     var image = imageService.downloadImage(id, account.id());
     return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + meta.filename())
-        .body(image);
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + image.filename())
+        .body(image.data());
   }
 
   /**
