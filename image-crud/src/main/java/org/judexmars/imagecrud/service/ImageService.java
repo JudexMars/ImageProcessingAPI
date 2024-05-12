@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.judexmars.imagecrud.dto.image.ImageBinaryDto;
 import org.judexmars.imagecrud.dto.image.ImageDto;
 import org.judexmars.imagecrud.dto.image.ImageResponseDto;
 import org.judexmars.imagecrud.dto.image.UploadImageResponseDto;
@@ -52,9 +53,10 @@ public class ImageService {
    * @return binary file
    * @throws Exception if image is not found or can't be downloaded for some reason
    */
-  public byte[] downloadImage(UUID id, UUID accountId) throws Exception {
+  public ImageBinaryDto downloadImage(UUID id, UUID accountId) throws Exception {
     var image = getImageMeta(id, accountId);
-    return minioService.downloadImage(image.link());
+    return new ImageBinaryDto(image.filename(),
+        image.size(), minioService.downloadImage(image.link()));
   }
 
   /**

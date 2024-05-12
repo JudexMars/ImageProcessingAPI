@@ -23,7 +23,6 @@ import org.springframework.mock.web.MockMultipartFile
 import java.util.*
 
 internal class ImageServiceTest {
-
     private val minioService: S3Service = mock()
     private val accountService: AccountService = mock()
     private val imageRepository: ImageRepository = mock()
@@ -36,10 +35,13 @@ internal class ImageServiceTest {
     fun saveImage() {
         // Given
         val uuid = UUID.randomUUID()
-        val mockMultipartFile = MockMultipartFile(
-            "file",
-            "test.jpg", "image/jpeg", "test image".toByteArray()
-        )
+        val mockMultipartFile =
+            MockMultipartFile(
+                "file",
+                "test.jpg",
+                "image/jpeg",
+                "test image".toByteArray(),
+            )
         val username = "testUser"
         val mockedImage = ImageDto("test.jpg", 10, "550e8400-e29b-41d4-a716-44665544000")
         val mockedAccount = AccountEntity()
@@ -62,10 +64,13 @@ internal class ImageServiceTest {
     @DisplayName("Fail save image")
     fun saveImageFail() {
         // Given
-        val mockMultipartFile = MockMultipartFile(
-            "file",
-            "test.jpg", "image/jpeg", "test image".toByteArray()
-        )
+        val mockMultipartFile =
+            MockMultipartFile(
+                "file",
+                "test.jpg",
+                "image/jpeg",
+                "test image".toByteArray(),
+            )
         val username = "testUser"
 
         // When
@@ -152,14 +157,16 @@ internal class ImageServiceTest {
     fun getImagesOfUser() {
         // Given
         val accountId = UUID.randomUUID()
-        val mockedImageEntities = listOf(
-            ImageEntity().setId(UUID.randomUUID()).setFilename("1").setSize(10),
-            ImageEntity().setId(UUID.randomUUID()).setFilename("2").setSize(10)
-        )
-        val expectedDtos = listOf(
-            ImageResponseDto(mockedImageEntities[0].id.toString(), "1", 10),
-            ImageResponseDto(mockedImageEntities[1].id.toString(), "2", 10)
-        )
+        val mockedImageEntities =
+            listOf(
+                ImageEntity().setId(UUID.randomUUID()).setFilename("1").setSize(10),
+                ImageEntity().setId(UUID.randomUUID()).setFilename("2").setSize(10),
+            )
+        val expectedDtos =
+            listOf(
+                ImageResponseDto(mockedImageEntities[0].id.toString(), "1", 10),
+                ImageResponseDto(mockedImageEntities[1].id.toString(), "2", 10),
+            )
 
         whenever(imageRepository.findByAuthorId(accountId)).thenReturn(mockedImageEntities)
         whenever(mapper.toImageResponseDto(mockedImageEntities[0])).thenReturn(expectedDtos[0])
