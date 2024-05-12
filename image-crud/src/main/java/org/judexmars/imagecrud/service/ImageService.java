@@ -42,7 +42,7 @@ public class ImageService {
    * @return {@link ImageDto} representation of the image
    * @throws ImageNotFoundException if there's no image with this id
    */
-  public ImageDto getImageMeta(UUID id) throws ImageNotFoundException {
+  public ImageDto getImageMeta(UUID id, UUID accountId) throws ImageNotFoundException {
     var image = getImageMetaAsEntitySafely(id, accountId);
     return mapper.toImageDto(image);
   }
@@ -84,7 +84,7 @@ public class ImageService {
    *
    * @param id id of the image to delete
    */
-  public void deleteImage(UUID id) {
+  public void deleteImage(UUID id, UUID accountId) {
     var image = getImageMeta(id, accountId);
     imageRepository.deleteById(id);
     try {
