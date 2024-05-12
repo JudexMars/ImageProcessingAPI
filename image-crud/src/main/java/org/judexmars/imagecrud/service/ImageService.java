@@ -14,7 +14,6 @@ import org.judexmars.imagecrud.exception.ImageNotFoundException;
 import org.judexmars.imagecrud.exception.UploadFailedException;
 import org.judexmars.imagecrud.mapper.ImageMapper;
 import org.judexmars.imagecrud.model.ImageEntity;
-import org.judexmars.imagecrud.model.ImageEntity;
 import org.judexmars.imagecrud.repository.ImageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
