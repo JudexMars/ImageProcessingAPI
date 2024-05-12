@@ -23,7 +23,6 @@ import org.springframework.mock.web.MockMultipartFile
 import java.util.*
 
 internal class ImageServiceTest {
-
     private val minioService: S3Service = mock()
     private val accountService: AccountService = mock()
     private val imageRepository: ImageRepository = mock()
@@ -36,10 +35,13 @@ internal class ImageServiceTest {
     fun saveImage() {
         // Given
         val uuid = UUID.randomUUID()
-        val mockMultipartFile = MockMultipartFile(
-            "file",
-            "test.jpg", "image/jpeg", "test image".toByteArray()
-        )
+        val mockMultipartFile =
+            MockMultipartFile(
+                "file",
+                "test.jpg",
+                "image/jpeg",
+                "test image".toByteArray(),
+            )
         val username = "testUser"
         val mockedImage = ImageDto("test.jpg", 10, "550e8400-e29b-41d4-a716-44665544000")
         val mockedAccount = AccountEntity()
@@ -62,10 +64,13 @@ internal class ImageServiceTest {
     @DisplayName("Fail save image")
     fun saveImageFail() {
         // Given
-        val mockMultipartFile = MockMultipartFile(
-            "file",
-            "test.jpg", "image/jpeg", "test image".toByteArray()
-        )
+        val mockMultipartFile =
+            MockMultipartFile(
+                "file",
+                "test.jpg",
+                "image/jpeg",
+                "test image".toByteArray(),
+            )
         val username = "testUser"
 
         // When
@@ -82,14 +87,15 @@ internal class ImageServiceTest {
     fun getImage() {
         // Given
         val id = UUID.randomUUID()
-        val mockedEntity = ImageEntity().setId(id)
+        val accountEntity = AccountEntity().setId(UUID.randomUUID())
+        val mockedEntity = ImageEntity().setId(id).setAuthor(accountEntity)
         val expectedDto = ImageDto("filename", 10, "link")
 
         whenever(imageRepository.findById(id)).thenReturn(Optional.of(mockedEntity))
         whenever(mapper.toImageDto(mockedEntity)).thenReturn(expectedDto)
 
         // When
-        val resultDto = imageService.getImageMeta(id)
+        val resultDto = imageService.getImageMeta(id, accountEntity.id)
 
         // Then
         assertEquals(expectedDto.filename, resultDto.filename)
@@ -102,10 +108,10 @@ internal class ImageServiceTest {
         val id = UUID.randomUUID()
         val mockedImage = ImageDto("filename", 10, "link")
 
-        doReturn(mockedImage).whenever(imageService).getImageMeta(id)
+        doReturn(mockedImage).whenever(imageService).getImageMeta(id, null)
 
         // When
-        imageService.deleteImage(id)
+        imageService.deleteImage(id, null)
 
         // Then
         verify(imageRepository, times(1)).deleteById(id)
@@ -118,11 +124,11 @@ internal class ImageServiceTest {
         // Given
         val id = UUID.randomUUID()
 
-        doThrow(ImageNotFoundException("link")).whenever(imageService).getImageMeta(id)
+        doThrow(ImageNotFoundException("link")).whenever(imageService).getImageMeta(id, null)
 
         // When & then
         assertThrows<ImageNotFoundException> {
-            imageService.deleteImage(id)
+            imageService.deleteImage(id, null)
         }
         verify(imageRepository, never()).deleteById(id)
         verify(minioService, never()).deleteImage(anyString())
@@ -135,12 +141,12 @@ internal class ImageServiceTest {
         val id = UUID.randomUUID()
         val mockedImage = ImageDto("filename", 1, "link")
 
-        doReturn(mockedImage).whenever(imageService).getImageMeta(id)
+        doReturn(mockedImage).whenever(imageService).getImageMeta(id, null)
         whenever(minioService.deleteImage(anyString())).thenThrow(DeleteFileException())
 
         // When & then
         assertThrows<DeleteFileException> {
-            imageService.deleteImage(id)
+            imageService.deleteImage(id, null)
         }
         verify(imageRepository, times(1)).deleteById(id)
         verify(minioService, times(1)).deleteImage(mockedImage.link)
@@ -151,14 +157,16 @@ internal class ImageServiceTest {
     fun getImagesOfUser() {
         // Given
         val accountId = UUID.randomUUID()
-        val mockedImageEntities = listOf(
-            ImageEntity().setId(UUID.randomUUID()).setFilename("1").setSize(10),
-            ImageEntity().setId(UUID.randomUUID()).setFilename("2").setSize(10)
-        )
-        val expectedDtos = listOf(
-            ImageResponseDto(mockedImageEntities[0].id.toString(), "1", 10),
-            ImageResponseDto(mockedImageEntities[1].id.toString(), "2", 10)
-        )
+        val mockedImageEntities =
+            listOf(
+                ImageEntity().setId(UUID.randomUUID()).setFilename("1").setSize(10),
+                ImageEntity().setId(UUID.randomUUID()).setFilename("2").setSize(10),
+            )
+        val expectedDtos =
+            listOf(
+                ImageResponseDto(mockedImageEntities[0].id.toString(), "1", 10),
+                ImageResponseDto(mockedImageEntities[1].id.toString(), "2", 10),
+            )
 
         whenever(imageRepository.findByAuthorId(accountId)).thenReturn(mockedImageEntities)
         whenever(mapper.toImageResponseDto(mockedImageEntities[0])).thenReturn(expectedDtos[0])
