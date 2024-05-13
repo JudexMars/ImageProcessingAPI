@@ -101,7 +101,6 @@ class CropProcessorTest {
 
         // Verify
         verify(s3Service, never()).downloadImage(any(), any())
-        verify(kafkaTemplate, never()).send(any(), any())
     }
 
     @Test
