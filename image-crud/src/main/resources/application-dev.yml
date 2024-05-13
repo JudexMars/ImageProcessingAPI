@@ -1,0 +1,5 @@
+jwt:
+  access-secret: 4AdHI97orbfdDJcBBIPhaDqZ+8ZLK6fVG+tjgdPFlJ0=
+  access-lifetime: 30m
+  refresh-secret: 1atFrQxrBhRsDst9yVo9vetvXMPnm9boCLDyIKuna3o=
+  refresh-lifetime: 10h

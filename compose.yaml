@@ -1,0 +1,72 @@
+services:
+  image-crud:
+    build:
+      context: image-crud
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - image-crud-postgres
+      - redis
+      - image-crud-s3
+    secrets:
+      - postgres-password
+    ports:
+      - 8080:8080
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://image-crud-postgres/image-db
+      - SPRING_DATA_REDIS_HOST=redis
+      - MINIO_URL=http://image-crud-s3:9000
+    networks:
+      - image-crud-network
+  image-crud-postgres:
+    image: postgres
+    restart: always
+    secrets:
+      - postgres-password
+    networks:
+      - image-crud-network
+    environment:
+      - POSTGRES_DB=image-db
+      - POSTGRES_USER=judex
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres-password
+      - PG_DATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+  image-crud-s3:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: judex
+      MINIO_ROOT_PASSWORD: password
+    volumes:
+      - minio-volume:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - image-crud-network
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_
+    volumes:
+      - redis-volume:/data
+    networks:
+      - image-crud-network
+
+secrets:
+  postgres-password:
+    file: image-crud/src/main/resources/db/postgres_password.txt
+networks:
+  image-crud-network:
+    driver: bridge
+
+volumes:
+  postgres-volume:
+  redis-volume:
+  minio-volume:
