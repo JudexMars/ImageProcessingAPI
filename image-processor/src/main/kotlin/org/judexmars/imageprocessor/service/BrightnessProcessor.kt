@@ -17,14 +17,14 @@ import java.io.ByteArrayInputStream
 import java.util.UUID
 
 @Service
-@ConditionalOnProperty(name = ["props.type"], havingValue = "CROP")
-class CropProcessor(
+@ConditionalOnProperty(name = ["props.type"], havingValue = "BRIGHTNESS")
+class BrightnessProcessor(
     val s3Service: S3Service,
     val template: KafkaTemplate<String, ImageStatusMessage>,
     val properties: ProcessorProperties,
 ) : Processor {
-    private companion object {
-        val log: Logger = LoggerFactory.getLogger(ReverseColorsProcessor::class.java)
+    companion object {
+        val log: Logger = LoggerFactory.getLogger(BrightnessProcessor::class.java)
     }
 
     @PostConstruct
@@ -34,22 +34,19 @@ class CropProcessor(
     }
 
     override fun process(message: ImageStatusMessage) {
-        log.info("Crop processor started processing new message: $message")
+        log.info("Brightness processor started processing new message: $message")
         val filters = message.filters
-        if (filters.isEmpty() || filters.first() != "CROP") return
+        if (filters.isEmpty() || filters.first() != "BRIGHTNESS") return
 
         val props = message.props
 
-        val x1 = props["x1"]
-        val y1 = props["y1"]
-        val x2 = props["x2"]
-        val y2 = props["y2"]
+        val brightness = props["brightness"]
 
         var nextImageId = message.imageId
         val nextFilters = filters.drop(1)
         val isIntermediate = nextFilters.isNotEmpty()
 
-        if (x1 != null && y1 != null && x2 != null && y2 != null) {
+        if (brightness != null) {
             val source: S3ImageDto =
                 try {
                     s3Service.downloadImage(message.imageId.toString(), true)
@@ -57,13 +54,10 @@ class CropProcessor(
                     s3Service.downloadImage(message.imageId.toString(), false)
                 }
             val modifiedImage =
-                crop(
+                adjustBrightness(
                     source.bytes,
                     source.contentType,
-                    x1.toInt(),
-                    y1.toInt(),
-                    x2.toInt(),
-                    y2.toInt(),
+                    brightness.toDouble(),
                 )
 
             val modifiedS3Image =
@@ -78,8 +72,7 @@ class CropProcessor(
 
         val nextProps =
             props.filterKeys {
-                !it.contains("x") &&
-                    !it.contains("y")
+                !it.contains("brightness")
             }
         val nextTopic = if (isIntermediate) properties.wipTopic else properties.doneTopic
 
@@ -92,24 +85,15 @@ class CropProcessor(
         template.send(nextTopic, nextMessage)
     }
 
-    fun crop(
+    fun adjustBrightness(
         source: ByteArray,
         contentType: String,
-        x1: Int,
-        y1: Int,
-        x2: Int,
-        y2: Int,
+        brightness: Double,
     ): ByteArray {
         val inputStream = ByteArrayInputStream(source)
         val image = ImmutableImage.loader().fromStream(inputStream)
 
-        val croppedImage =
-            image.subimage(
-                x1,
-                y1,
-                x2 - x1,
-                y2 - y1,
-            )
+        val brightened = image.brightness(brightness)
 
         val writer: ImageWriter =
             when (contentType) {
@@ -117,6 +101,6 @@ class CropProcessor(
                 "image/png" -> PngWriter.NoCompression
                 else -> throw IllegalArgumentException()
             }
-        return croppedImage.bytes(writer)
+        return brightened.bytes(writer)
     }
 }
