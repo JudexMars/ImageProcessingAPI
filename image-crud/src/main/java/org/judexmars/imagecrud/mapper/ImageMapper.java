@@ -6,13 +6,16 @@ import org.judexmars.imagecrud.model.ImageEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+/**
+ * Mapper for {@link ImageEntity}, {@link ImageDto} and {@link ImageResponseDto}.
+ */
 @Mapper(componentModel = "spring")
 public interface ImageMapper {
 
-    ImageDto toImageDto(ImageEntity image);
+  ImageDto toImageDto(ImageEntity image);
 
-    ImageEntity toImageEntity(ImageDto imageDto);
+  ImageEntity toImageEntity(ImageDto imageDto);
 
-    @Mapping(target = "imageId", source = "id")
-    ImageResponseDto toImageResponseDto(ImageEntity image);
+  @Mapping(target = "imageId", source = "id")
+  ImageResponseDto toImageResponseDto(ImageEntity image);
 }

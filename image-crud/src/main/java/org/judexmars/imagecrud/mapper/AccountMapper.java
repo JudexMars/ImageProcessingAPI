@@ -5,10 +5,13 @@ import org.judexmars.imagecrud.dto.account.CreateAccountDto;
 import org.judexmars.imagecrud.model.AccountEntity;
 import org.mapstruct.Mapper;
 
+/**
+ * Mapper for {@link AccountEntity} and {@link AccountDto}.
+ */
 @Mapper(componentModel = "spring")
 public interface AccountMapper {
 
-    AccountDto toAccountDto(AccountEntity accountEntity);
+  AccountDto toAccountDto(AccountEntity accountEntity);
 
-    AccountEntity toAccountEntity(CreateAccountDto createAccountDto);
+  AccountEntity toAccountEntity(CreateAccountDto createAccountDto);
 }

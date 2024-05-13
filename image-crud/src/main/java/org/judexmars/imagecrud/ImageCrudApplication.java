@@ -9,17 +9,20 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+/**
+ * Main application class.
+ */
 @SpringBootApplication
 @SecurityScheme(name = "Auth",
-        scheme = "bearer",
-        type = SecuritySchemeType.HTTP,
-        in = SecuritySchemeIn.HEADER,
-        bearerFormat = "JWT")
+    scheme = "bearer",
+    type = SecuritySchemeType.HTTP,
+    in = SecuritySchemeIn.HEADER,
+    bearerFormat = "JWT")
 @EnableConfigurationProperties({JwtProperties.class, MinioProperties.class})
 public class ImageCrudApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(ImageCrudApplication.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(ImageCrudApplication.class, args);
+  }
 
 }
