@@ -21,7 +21,6 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.kotlin.any
 import org.mockito.kotlin.whenever
 import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.support.Acknowledgment
 import java.util.Optional
 import java.util.UUID
 
@@ -96,7 +95,14 @@ internal class ImageFiltersServiceTest {
         )
 
         // When
-        imageFiltersService.processDoneImage(ImageStatusMessage(imageId, requestId, emptyList()))
+        imageFiltersService.processDoneImage(
+            ImageStatusMessage(
+                imageId.toString(),
+                requestId.toString(),
+                emptyList(),
+                emptyMap(),
+            ),
+        )
 
         // Then
         verify(applyFilterRequestRepository).findById(requestId)

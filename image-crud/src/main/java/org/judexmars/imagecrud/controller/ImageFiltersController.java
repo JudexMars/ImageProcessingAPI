@@ -66,7 +66,7 @@ public class ImageFiltersController {
               schema = @Schema(implementation = BaseResponseDto.class)))
   })
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
-  public ApplyImageFiltersResponseDto applyFilters(@PathVariable(name = "image-id") UUID imageId,
+  public ApplyImageFiltersResponse applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters,
                                                    @RequestBody Map<String, String> props,
                                                    @AuthenticationPrincipal String username) {

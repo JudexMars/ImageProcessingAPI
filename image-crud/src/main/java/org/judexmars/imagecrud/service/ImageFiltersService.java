@@ -1,7 +1,6 @@
 package org.judexmars.imagecrud.service;
 
 import jakarta.transaction.Transactional;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,10 +19,7 @@ import org.judexmars.imagecrud.model.RequestStatus;
 import org.judexmars.imagecrud.repository.ApplyFilterRequestRepository;
 import org.judexmars.imagecrud.repository.ImageRepository;
 import org.judexmars.imagecrud.repository.RequestStatusRepository;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,7 +50,7 @@ public class ImageFiltersService {
    * @return DTO with request id
    */
   @Transactional
-  public ApplyImageFiltersResponseDto applyFilters(UUID imageId,
+  public ApplyImageFiltersResponse applyFilters(UUID imageId,
                                                    List<FilterType> filters,
                                                    Map<String, String> props,
                                                    UUID accountId) {
@@ -68,7 +64,7 @@ public class ImageFiltersService {
             savedRequest.getRequestId().toString(),
             filters,
             props));
-    return new ApplyImageFiltersResponseDto(savedRequest.getRequestId());
+    return new ApplyImageFiltersResponse(savedRequest.getRequestId());
   }
 
 
@@ -80,6 +76,7 @@ public class ImageFiltersService {
    * @return DTO containing id of the modified image
    *     (or the original if it hasn't been processed yet) and request status
    */
+  @Transactional
   public GetModifiedImageDto getApplyImageFilterRequest(UUID imageId,
                                                         UUID requestId,
                                                         UUID accountId) {
@@ -118,7 +115,6 @@ public class ImageFiltersService {
     } catch (Exception ex) {
       throw new ImageNotFoundException(imageId);
     }
-    ack.acknowledge();
   }
 
   private RequestStatus getRequestStatus(String name) {
@@ -136,14 +132,5 @@ public class ImageFiltersService {
   public ApplyFilterRequestEntity getRequestEntity(UUID requestId) {
     return applyFilterRequestRepository.findById(requestId).orElseThrow(() ->
         new RequestNotFoundException(requestId.toString()));
-  }
-
-  /**
-   * Save new apply filter request.
-   *
-   * @param request request to be saved
-   */
-  public void saveRequest(ApplyFilterRequestEntity request) {
-    applyFilterRequestRepository.save(request);
   }
 }
