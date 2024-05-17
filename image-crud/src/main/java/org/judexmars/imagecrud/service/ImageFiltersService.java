@@ -1,13 +1,13 @@
 package org.judexmars.imagecrud.service;
 
+import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto;
+import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponse;
 import org.judexmars.imagecrud.dto.imagefilters.BasicRequestStatus;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
@@ -53,6 +53,7 @@ public class ImageFiltersService {
    * @param accountId id of account requesting this
    * @return DTO with request id
    */
+  @Transactional
   public ApplyImageFiltersResponseDto applyFilters(UUID imageId,
                                                    List<FilterType> filters,
                                                    Map<String, String> props,
@@ -94,29 +95,13 @@ public class ImageFiltersService {
   }
 
   /**
-   * Kafka consumer which updates requests in the DB according to incoming messages.
+   * Process status message about done modified image.
    *
-   * @param record incoming message from Kafka broker
+   * @param statusMessage arrived status message
    */
-  @KafkaListener(
-      topics = "images.done",
-      groupId = "images-done-consumer-group-1",
-      concurrency = "2",
-      properties = {
-          ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
-              + "=org.springframework.kafka.support.serializer.JsonDeserializer",
-          JsonDeserializer.TRUSTED_PACKAGES + "=org.judexmars.imagecrud.dto.kafka",
-          ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG + "=false",
-          ConsumerConfig.ISOLATION_LEVEL_CONFIG + "=read_committed",
-          ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG
-              + "=org.apache.kafka.clients.consumer.RoundRobinAssignor"
-      }
-  )
-  public void consumeDoneImage(ConsumerRecord<String, ImageStatusMessage> record,
-                               Acknowledgment ack) {
-    var value = record.value();
-    var imageId = value.imageId();
-    var requestId = value.requestId();
+  public void processDoneImage(ImageStatusMessage statusMessage) {
+    var imageId = statusMessage.imageId();
+    var requestId = statusMessage.requestId();
     var request = getRequestEntity(UUID.fromString(requestId));
     var originalImage = imageService.getImageMetaAsEntity(request.getImage().getId());
     request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
@@ -142,8 +127,23 @@ public class ImageFiltersService {
         new RequestNotFoundException(name));
   }
 
-  private ApplyFilterRequestEntity getRequestEntity(UUID requestId) {
+  /**
+   * Get {@link ApplyFilterRequestEntity} by id.
+   *
+   * @param requestId id
+   * @return entity
+   */
+  public ApplyFilterRequestEntity getRequestEntity(UUID requestId) {
     return applyFilterRequestRepository.findById(requestId).orElseThrow(() ->
         new RequestNotFoundException(requestId.toString()));
+  }
+
+  /**
+   * Save new apply filter request.
+   *
+   * @param request request to be saved
+   */
+  public void saveRequest(ApplyFilterRequestEntity request) {
+    applyFilterRequestRepository.save(request);
   }
 }

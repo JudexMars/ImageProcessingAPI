@@ -1,7 +1,6 @@
 package org.judexmars.imagecrud.unit.service
 
-import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto
+import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponse
 import org.judexmars.imagecrud.dto.imagefilters.FilterType
 import org.judexmars.imagecrud.dto.kafka.ImageStatusMessage
 import org.judexmars.imagecrud.model.AccountEntity
@@ -35,8 +34,6 @@ internal class ImageFiltersServiceTest {
 
     private val requestStatusRepository: RequestStatusRepository = mock()
 
-    private val ack: Acknowledgment = mock()
-
     @Test
     @DisplayName("Apply 2 filters to some image")
     fun applyFiltersToImage() {
@@ -53,7 +50,8 @@ internal class ImageFiltersServiceTest {
         val imageId = UUID.randomUUID()
         val filters = listOf(FilterType.CROP, FilterType.REVERSE_COLORS)
         val savedRequest = ApplyFilterRequestEntity().setRequestId(UUID.randomUUID())
-        val responseDto = ApplyImageFiltersResponseDto(savedRequest.requestId)
+        val responseDto =
+            ApplyImageFiltersResponse(savedRequest.requestId)
 
         doReturn(savedRequest).whenever(applyFilterRequestRepository).save(any())
         doReturn(Optional.of(RequestStatus().setName("WIP"))).whenever(requestStatusRepository).findByName("WIP")
@@ -98,21 +96,10 @@ internal class ImageFiltersServiceTest {
         )
 
         // When
-        imageFiltersService.consumeDoneImage(
-            ConsumerRecord(
-                "",
-                0,
-                0,
-                "",
-                ImageStatusMessage(imageId.toString(), requestId.toString(), emptyList(), emptyMap()),
-            ),
-            ack,
-        )
+        imageFiltersService.processDoneImage(ImageStatusMessage(imageId, requestId, emptyList()))
 
         // Then
         verify(applyFilterRequestRepository).findById(requestId)
         verify(applyFilterRequestRepository).save(any())
-        verify(ack).acknowledge()
-        verifyNoMoreInteractions(applyFilterRequestRepository, ack)
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.judexmars.imagecrud.dto.BaseResponseDto;
-import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto;
+import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponse;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
 import org.judexmars.imagecrud.service.AccountService;
