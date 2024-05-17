@@ -17,7 +17,7 @@ import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
 import org.judexmars.imagecrud.service.AccountService;
 import org.judexmars.imagecrud.service.ImageFiltersService;
-import org.judexmars.imagecrud.utils.SecurityUtils;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,8 +38,6 @@ public class ImageFiltersController {
   private final ImageFiltersService imageFiltersService;
 
   private final AccountService accountService;
-
-  private final SecurityUtils securityUtils;
 
   /**
    * Apply selected filters to the uploaded image.
@@ -70,9 +68,9 @@ public class ImageFiltersController {
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponseDto applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters,
-                                                   @RequestBody Map<String, String> props) {
-    var loggedInUsername = securityUtils.getLoggedInUsername();
-    var account = accountService.getByUsername(loggedInUsername);
+                                                   @RequestBody Map<String, String> props,
+                                                   @AuthenticationPrincipal String username) {
+    var account = accountService.getByUsername(username);
     return imageFiltersService.applyFilters(imageId, filters, props, account.id());
   }
 
@@ -99,9 +97,9 @@ public class ImageFiltersController {
   })
   @GetMapping(value = "/image/{image-id}/filters/{request-id}", produces = "application/json")
   public GetModifiedImageDto getModifiedImage(@PathVariable(name = "image-id") UUID imageId,
-                                              @PathVariable(name = "request-id") UUID requestId) {
-    var loggedInUsername = securityUtils.getLoggedInUsername();
-    var account = accountService.getByUsername(loggedInUsername);
+                                              @PathVariable(name = "request-id") UUID requestId,
+                                              @AuthenticationPrincipal String username) {
+    var account = accountService.getByUsername(username);
     return imageFiltersService.getApplyImageFilterRequest(imageId, requestId, account.id());
   }
 }

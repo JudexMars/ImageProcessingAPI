@@ -12,8 +12,8 @@ import org.judexmars.imagecrud.model.RoleEntity;
 import org.judexmars.imagecrud.repository.PrivilegeRepository;
 import org.judexmars.imagecrud.repository.RequestStatusRepository;
 import org.judexmars.imagecrud.repository.RoleRepository;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DataLoader implements ApplicationRunner {
+public class DataLoader {
 
   private final PrivilegeRepository privilegeRepository;
 
@@ -30,9 +30,13 @@ public class DataLoader implements ApplicationRunner {
 
   private final RequestStatusRepository requestStatusRepository;
 
-  @Override
+  /**
+   * Fills database with essential entities, needed for application's functioning.
+   * 
+   */
+  @EventListener(ApplicationReadyEvent.class)
   @Transactional
-  public void run(ApplicationArguments args) {
+  public void run() {
     initPrivileges();
     initRoles();
     initStatuses();

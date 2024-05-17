@@ -75,7 +75,7 @@ public class AppExceptionHandler {
    * @return the response entity with the error message
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  protected ResponseEntity<BaseResponseDto> handleMethodArgumentNotValid(
+  public ResponseEntity<BaseResponseDto> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex) {
     List<String> body =
         ex.getBindingResult().getAllErrors().stream()

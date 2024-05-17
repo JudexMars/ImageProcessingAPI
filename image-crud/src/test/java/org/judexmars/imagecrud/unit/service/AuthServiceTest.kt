@@ -4,9 +4,10 @@ import org.judexmars.imagecrud.exception.InvalidJwtException
 import org.judexmars.imagecrud.model.AccountEntity
 import org.judexmars.imagecrud.service.AccountService
 import org.judexmars.imagecrud.service.AuthService
+import org.judexmars.imagecrud.service.JwtTokenService
 import org.judexmars.imagecrud.service.RedisTokenService
-import org.judexmars.imagecrud.utils.JwtTokenUtils
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.assertThrows
@@ -16,17 +17,16 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.security.authentication.AuthenticationManager
-import java.util.*
+import java.util.UUID
 
 internal class AuthServiceTest {
-
     private val authenticationManager: AuthenticationManager = mock()
-    private val jwtTokenUtils: JwtTokenUtils = mock()
+    private val jwtTokenService: JwtTokenService = mock()
     private val redisTokenService: RedisTokenService = mock()
     private val accountService: AccountService = mock()
 
-    private val authenticationService =
-        AuthService(jwtTokenUtils, authenticationManager, accountService, redisTokenService)
+    private val authService =
+        AuthService(jwtTokenService, authenticationManager, accountService, redisTokenService)
 
     @Test
     @DisplayName("Create auth tokens")
@@ -38,19 +38,20 @@ internal class AuthServiceTest {
         val refreshToken = "testRefreshToken"
         val account = AccountEntity()
 
-        whenever(jwtTokenUtils.generateAccessToken(account)).thenReturn(accessToken)
-        whenever(jwtTokenUtils.generateRefreshToken(account)).thenReturn(refreshToken)
+        whenever(jwtTokenService.generateAccessToken(account)).thenReturn(accessToken)
+        whenever(jwtTokenService.generateRefreshToken(account)).thenReturn(refreshToken)
 
         // When
-        val tokens = authenticationService.createAuthTokens(account, username, password)
+        val tokens = authService.createAuthTokens(account, username, password)
 
         // Then
-        assertArrayEquals(arrayOf(accessToken, refreshToken), tokens)
+        assertEquals(accessToken, tokens.accessToken)
+        assertEquals(refreshToken, tokens.refreshToken)
 
         verify(authenticationManager).authenticate(any()) // Verify authenticationManager.authenticate is called with any parameters
         verify(redisTokenService).saveRefreshToken(
             username,
-            refreshToken
+            refreshToken,
         ) // Verify redisTokenService.saveRefreshToken is called with expected parameters
     }
 
@@ -64,26 +65,26 @@ internal class AuthServiceTest {
         val username = "testUser"
         val userDetails = AccountEntity().setId(accountId).setUsername(username)
 
-        whenever(jwtTokenUtils.getUsernameFromRefreshToken(refreshToken)).thenReturn(username)
+        whenever(jwtTokenService.getUsernameFromRefreshToken(refreshToken)).thenReturn(username)
         whenever(redisTokenService.deleteRefreshToken(username, refreshToken)).thenReturn(true)
         whenever(accountService.loadUserByUsername(username)).thenReturn(userDetails)
-        whenever(jwtTokenUtils.generateAccessToken(userDetails)).thenReturn(accessToken)
-        whenever(jwtTokenUtils.generateRefreshToken(userDetails)).thenReturn(refreshToken)
+        whenever(jwtTokenService.generateAccessToken(userDetails)).thenReturn(accessToken)
+        whenever(jwtTokenService.generateRefreshToken(userDetails)).thenReturn(refreshToken)
 
         // When
-        val result = authenticationService.refresh(refreshToken)
+        val result = authService.refresh(refreshToken)
 
         // Then
         assertNotNull(result)
-        assertEquals(accessToken, result[0])
-        assertEquals(refreshToken, result[1])
-        assertEquals(accountId.toString(), result[2])
-        assertEquals(username, result[3])
+        assertEquals(accessToken, result.tokens.accessToken)
+        assertEquals(refreshToken, result.tokens.refreshToken)
+        assertEquals(accountId.toString(), result.accountId)
+        assertEquals(username, result.username)
 
-        verify(jwtTokenUtils).getUsernameFromRefreshToken(refreshToken)
+        verify(jwtTokenService).getUsernameFromRefreshToken(refreshToken)
         verify(redisTokenService).deleteRefreshToken(username, refreshToken)
         verify(accountService).loadUserByUsername(username)
-        verify(jwtTokenUtils).generateAccessToken(userDetails)
+        verify(jwtTokenService).generateAccessToken(userDetails)
         verify(redisTokenService).saveRefreshToken(username, refreshToken)
     }
 
@@ -93,14 +94,14 @@ internal class AuthServiceTest {
         // Given
         val refreshToken = "invalidToken"
 
-        whenever(jwtTokenUtils.getUsernameFromRefreshToken(refreshToken)).thenThrow(InvalidJwtException())
+        whenever(jwtTokenService.getUsernameFromRefreshToken(refreshToken)).thenThrow(InvalidJwtException())
 
         // When & then
         assertThrows<InvalidJwtException> {
-            authenticationService.refresh(refreshToken)
+            authService.refresh(refreshToken)
         }
 
-        verify(jwtTokenUtils).getUsernameFromRefreshToken(refreshToken)
+        verify(jwtTokenService).getUsernameFromRefreshToken(refreshToken)
         verifyNoInteractions(redisTokenService, accountService)
     }
 }

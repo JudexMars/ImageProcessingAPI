@@ -21,7 +21,6 @@ import java.util.*
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ImageTest : AbstractBaseTest() {
-
     @Autowired
     private lateinit var accountRepository: AccountRepository
 
@@ -49,27 +48,33 @@ class ImageTest : AbstractBaseTest() {
     }
 
     private val token: String by lazy {
-        "Bearer " + authService.createAuthTokens(
-            accountService
-                .loadUserByUsername("johnny"), "johnny", "jabroni"
-        )[0]
+        "Bearer " +
+            authService.createAuthTokens(
+                accountService
+                    .loadUserByUsername("johnny"),
+                "johnny",
+                "jabroni",
+            ).accessToken
     }
 
     @Test
     @DisplayName("Upload & download image")
     fun uploadDownloadImage() {
         // Given
-        val file: MockMultipartFile? = javaClass.getResourceAsStream("/test_image.png")?.let {
-            MockMultipartFile(
-                "file", "test-image.jpg", "image/png",
-                it
-            )
-        }
+        val file: MockMultipartFile? =
+            javaClass.getResourceAsStream("/test_image.png")?.let {
+                MockMultipartFile(
+                    "file",
+                    "test-image.jpg",
+                    "image/png",
+                    it,
+                )
+            }
 
         // When & then
         file?.let { MockMvcRequestBuilders.multipart("/image").file(it).header("Authorization", token) }?.also {
             mockMvc.perform(
-                it
+                it,
             ).andExpect(status().isOk)
         } ?: run {
             throw RuntimeException()
@@ -92,17 +97,20 @@ class ImageTest : AbstractBaseTest() {
     @DisplayName("Delete image")
     fun deleteImage() {
         // Given
-        val file: MockMultipartFile? = javaClass.getResourceAsStream("/test_image.png")?.let {
-            MockMultipartFile(
-                "file", "test-image.jpg", "image/png",
-                it
-            )
-        }
+        val file: MockMultipartFile? =
+            javaClass.getResourceAsStream("/test_image.png")?.let {
+                MockMultipartFile(
+                    "file",
+                    "test-image.jpg",
+                    "image/png",
+                    it,
+                )
+            }
 
         // When & then
         file?.let { MockMvcRequestBuilders.multipart("/image").file(it).header("Authorization", token) }?.also {
             mockMvc.perform(
-                it
+                it,
             ).andExpect(status().isOk)
         } ?: run {
             throw RuntimeException()
