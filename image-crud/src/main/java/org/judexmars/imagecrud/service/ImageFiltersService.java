@@ -1,12 +1,11 @@
 package org.judexmars.imagecrud.service;
 
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto;
+import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponse;
 import org.judexmars.imagecrud.dto.imagefilters.BasicRequestStatus;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
@@ -16,10 +15,7 @@ import org.judexmars.imagecrud.model.ApplyFilterRequestEntity;
 import org.judexmars.imagecrud.model.RequestStatus;
 import org.judexmars.imagecrud.repository.ApplyFilterRequestRepository;
 import org.judexmars.imagecrud.repository.RequestStatusRepository;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.Acknowledgment;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Service;
 
 /**
@@ -41,21 +37,22 @@ public class ImageFiltersService {
   /**
    * Applies filters to the selected image asynchronously.
    *
-   * @param imageId id of the image
-   * @param filters filter types
+   * @param imageId   id of the image
+   * @param filters   filter types
    * @param accountId id of account requesting this
    * @return DTO with request id
    */
-  public ApplyImageFiltersResponseDto applyFilters(UUID imageId,
-                                                   UUID accountId,
-                                                   List<FilterType> filters) {
+  @Transactional
+  public ApplyImageFiltersResponse applyFilters(UUID imageId,
+                                                UUID accountId,
+                                                List<FilterType> filters) {
     var meta = imageService.getImageMetaAsEntitySafely(imageId, accountId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());
     var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImage(meta);
     var savedRequest = applyFilterRequestRepository.save(request);
     kafkaTemplate.send("images.wip",
         new ImageStatusMessage(imageId, savedRequest.getRequestId(), filters));
-    return new ApplyImageFiltersResponseDto(savedRequest.getRequestId());
+    return new ApplyImageFiltersResponse(savedRequest.getRequestId());
   }
 
 
@@ -77,44 +74,48 @@ public class ImageFiltersService {
   }
 
   /**
-   * Kafka consumer which updates requests in the DB according to incoming messages.
+   * Get {@link RequestStatus} by name.
    *
-   * @param record incoming message from Kafka broker
+   * @param name request name
+   * @return entity
    */
-  @KafkaListener(
-      topics = "images.done",
-      groupId = "images-done-consumer-group-1",
-      concurrency = "2",
-      properties = {
-          ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
-              + "=org.springframework.kafka.support.serializer.JsonDeserializer",
-          JsonDeserializer.TRUSTED_PACKAGES + "=org.judexmars.imagecrud.dto.kafka",
-          ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG + "=false",
-          ConsumerConfig.ISOLATION_LEVEL_CONFIG + "=read_committed",
-          ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG
-              + "=org.apache.kafka.clients.consumer.RoundRobinAssignor"
-      }
-  )
-  public void consumeDoneImage(ConsumerRecord<String, ImageStatusMessage> record,
-                               Acknowledgment ack) {
-    var value = record.value();
-    var imageId = value.imageId();
-    var requestId = value.requestId();
-    var request = getRequestEntity(requestId);
-    request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
-    request.setImage(imageService.getImageMetaAsEntity(imageId));
-    applyFilterRequestRepository.save(request);
-    ack.acknowledge();
-  }
-
-  private RequestStatus getRequestStatus(String name) {
+  public RequestStatus getRequestStatus(String name) {
     log.info("Getting request status for {}", name);
     return requestStatusRepository.findByName(name).orElseThrow(() ->
         new RequestNotFoundException(name));
   }
 
-  private ApplyFilterRequestEntity getRequestEntity(UUID requestId) {
+  /**
+   * Get {@link ApplyFilterRequestEntity} by id.
+   *
+   * @param requestId id
+   * @return entity
+   */
+  public ApplyFilterRequestEntity getRequestEntity(UUID requestId) {
     return applyFilterRequestRepository.findById(requestId).orElseThrow(() ->
         new RequestNotFoundException(requestId.toString()));
+  }
+
+  /**
+   * Save new apply filter request.
+   *
+   * @param request request to be saved
+   */
+  public void saveRequest(ApplyFilterRequestEntity request) {
+    applyFilterRequestRepository.save(request);
+  }
+
+  /**
+   * Process status message about done modified image.
+   *
+   * @param statusMessage arrived status message
+   */
+  public void processDoneImage(ImageStatusMessage statusMessage) {
+    var imageId = statusMessage.imageId();
+    var requestId = statusMessage.requestId();
+    var request = getRequestEntity(requestId);
+    request.setStatus(getRequestStatus(BasicRequestStatus.DONE.name()));
+    request.setImage(imageService.getImageMetaAsEntity(imageId));
+    saveRequest(request);
   }
 }

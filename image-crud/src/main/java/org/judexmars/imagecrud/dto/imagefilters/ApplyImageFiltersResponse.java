@@ -9,7 +9,7 @@ import java.util.UUID;
  * @param requestId id of the request to apply filters
  */
 @Schema(name = "ApplyImageFiltersResponse")
-public record ApplyImageFiltersResponseDto(
+public record ApplyImageFiltersResponse(
     @Schema(description = "ИД запроса в системе", requiredMode = Schema.RequiredMode.REQUIRED)
     UUID requestId
 ) {

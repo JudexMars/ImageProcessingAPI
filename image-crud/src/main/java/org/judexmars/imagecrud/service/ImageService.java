@@ -83,7 +83,7 @@ public class ImageService {
    *
    * @param id id of the image to delete
    */
-  public void deleteImage(UUID id, UUID accountId) throws DeleteFileException {
+  public void deleteImage(UUID id, UUID accountId) {
     var image = getImageMeta(id, accountId);
     imageRepository.deleteById(id);
     try {
@@ -109,7 +109,7 @@ public class ImageService {
   /**
    * Safely get image as entity.
    *
-   * @param id id of the image
+   * @param id        id of the image
    * @param accountId id of the account requesting this
    * @return image entity
    */
@@ -127,7 +127,7 @@ public class ImageService {
    * @param id id of the image
    * @return image entity
    */
-  ImageEntity getImageMetaAsEntity(UUID id) {
+  public ImageEntity getImageMetaAsEntity(UUID id) {
     return imageRepository.findById(id)
         .orElseThrow(() -> new ImageNotFoundException(String.valueOf(id)));
   }

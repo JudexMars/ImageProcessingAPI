@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.judexmars.imagecrud.dto.BaseResponseDto;
-import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponseDto;
+import org.judexmars.imagecrud.dto.imagefilters.ApplyImageFiltersResponse;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
 import org.judexmars.imagecrud.service.AccountService;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Auth")
 @Tag(name = "Image Filters Controller",
-        description = "API для применения фильтров к загруженным картинкам")
+    description = "API для применения фильтров к загруженным картинкам")
 public class ImageFiltersController {
 
   private final ImageFiltersService imageFiltersService;
@@ -60,14 +60,14 @@ public class ImageFiltersController {
           useReturnTypeSchema = true),
       @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class))),
+              schema = @Schema(implementation = BaseResponseDto.class))),
       @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class)))
+              schema = @Schema(implementation = BaseResponseDto.class)))
   })
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
-  public ApplyImageFiltersResponseDto applyFilters(@PathVariable(name = "image-id") UUID imageId,
-                                                   @RequestParam List<FilterType> filters) {
+  public ApplyImageFiltersResponse applyFilters(@PathVariable(name = "image-id") UUID imageId,
+                                                @RequestParam List<FilterType> filters) {
     var loggedInUsername = securityUtils.getLoggedInUsername();
     var account = accountService.getByUsername(loggedInUsername);
     return imageFiltersService.applyFilters(imageId, account.id(), filters);
@@ -89,10 +89,10 @@ public class ImageFiltersController {
           useReturnTypeSchema = true),
       @ApiResponse(responseCode = "404", description = "Файл не найден в системе или недоступен",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class))),
+              schema = @Schema(implementation = BaseResponseDto.class))),
       @ApiResponse(responseCode = "500", description = "Непредвиденная ошибка",
           content = @Content(mediaType = "application/json",
-                  schema = @Schema(implementation = BaseResponseDto.class)))
+              schema = @Schema(implementation = BaseResponseDto.class)))
   })
   @GetMapping(value = "/image/{image-id}/filters/{request-id}", produces = "application/json")
   public GetModifiedImageDto getModifiedImage(@PathVariable(name = "image-id") UUID imageId,
