@@ -64,7 +64,11 @@ class ReverseColorsProcessorTest {
 
         whenever(s3Service.downloadImage(any(), any())).thenReturn(sourceImage)
         whenever(s3Service.uploadImage(any(), any(), any(), any())).thenReturn(sourceImage)
-        doReturn(processedImageBytes).whenever(reverseColorsProcessor).reverseColors(any(), any())
+        doReturn(processedImageBytes).whenever(reverseColorsProcessor).applyFilter(
+            any(),
+            any(),
+            eq(null),
+        )
 
         // Act
         reverseColorsProcessor.process(message)
@@ -106,7 +110,7 @@ class ReverseColorsProcessorTest {
     @DisplayName("Test that colors are correctly inverted")
     fun testColorInversion() {
         val sourceImageBytes = createSimpleColorTestPngImage()
-        val invertedBytes = reverseColorsProcessor.reverseColors(sourceImageBytes, "image/png")
+        val invertedBytes = reverseColorsProcessor.applyFilter(sourceImageBytes, "image/png")
         val invertedImage = ImmutableImage.loader().fromBytes(invertedBytes)
 
         val expectedColors =

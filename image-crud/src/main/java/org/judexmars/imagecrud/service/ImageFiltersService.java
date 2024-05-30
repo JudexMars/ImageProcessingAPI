@@ -52,7 +52,7 @@ public class ImageFiltersService {
   @Transactional
   public ApplyImageFiltersResponse applyFilters(UUID imageId,
                                                    List<FilterType> filters,
-                                                   Map<String, String> props,
+                                                   Map<String, Object> props,
                                                    UUID accountId) {
     var meta = imageService.getImageMetaAsEntitySafely(imageId, accountId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());

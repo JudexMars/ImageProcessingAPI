@@ -7,7 +7,6 @@ package org.judexmars.imageprocessor.dto
  * @param link     link to the image in storage
  * @param bytes byte representation of image
  */
-@JvmRecord
 data class ImageDto(
     val size: Long,
     val link: String,

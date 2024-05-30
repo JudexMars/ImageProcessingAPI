@@ -20,6 +20,6 @@ public record ImageStatusMessage(
     String requestId,
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     List<FilterType> filters,
-    Map<String, String> props
+    Map<String, Object> props
 ) {
 }

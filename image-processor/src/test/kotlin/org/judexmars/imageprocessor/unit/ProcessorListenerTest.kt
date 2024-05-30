@@ -1,6 +1,5 @@
 package org.judexmars.imageprocessor.unit
 
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.judexmars.imageprocessor.dto.ImageStatusMessage
 import org.judexmars.imageprocessor.service.Processor
 import org.judexmars.imageprocessor.service.ProcessorListener
@@ -34,7 +33,6 @@ class ProcessorListenerTest {
                 filters = emptyList(),
                 props = emptyMap(),
             )
-        val consumerRecord = ConsumerRecord("images.wip", 0, 0L, "key", imageStatusMessage)
 
         whenever(redisTemplate.opsForValue()).thenReturn(valueOperations)
         whenever(valueOperations.get(requestId.toString())).thenReturn(null) // Return a different imageId
@@ -42,7 +40,7 @@ class ProcessorListenerTest {
         val listener = ProcessorListener(processors, redisTemplate)
 
         // When
-        listener.listen(consumerRecord, acknowledgment)
+        listener.listen(imageStatusMessage, acknowledgment)
 
         // Then
         verify(valueOperations).set(requestId.toString(), imageId.toString())

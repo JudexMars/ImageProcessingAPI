@@ -4,6 +4,7 @@ import com.sksamuel.scrimage.ImmutableImage
 import org.judexmars.imageprocessor.config.ProcessorProperties
 import org.judexmars.imageprocessor.dto.ImageStatusMessage
 import org.judexmars.imageprocessor.dto.S3ImageDto
+import org.judexmars.imageprocessor.dto.props.CropProps
 import org.judexmars.imageprocessor.service.CropProcessor
 import org.judexmars.imageprocessor.service.S3Service
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -52,7 +53,7 @@ class CropProcessorTest {
                 size = 0,
             )
         val processedImageBytes = byteArrayOf(1, 2, 3, 4) // Example processed image
-        val props = mapOf("x1" to "100", "y1" to "100", "x2" to "200", "y2" to "200")
+        val props = mapOf("CROP" to mapOf("x1" to "100", "y1" to "100", "x2" to "200", "y2" to "200"))
         val filters = listOf("CROP", "OTHER_FILTER")
         val message =
             ImageStatusMessage(
@@ -64,7 +65,7 @@ class CropProcessorTest {
 
         whenever(s3Service.downloadImage(any(), any())).thenReturn(sourceImage)
         whenever(s3Service.uploadImage(any(), any(), any(), any())).thenReturn(sourceImage)
-        doReturn(processedImageBytes).whenever(cropProcessor).crop(any(), any(), any(), any(), any(), any())
+        doReturn(processedImageBytes).whenever(cropProcessor).applyFilter(any(), any(), any())
 
         // Act
         cropProcessor.process(message)
@@ -112,7 +113,7 @@ class CropProcessorTest {
         val x2 = 150
         val y2 = 150
 
-        val croppedBytes = cropProcessor.crop(sourceImage, "image/jpeg", x1, y1, x2, y2)
+        val croppedBytes = cropProcessor.applyFilter(sourceImage, "image/jpeg", CropProps(x1, y1, x2, y2))
         val croppedImage = ImmutableImage.loader().fromBytes(croppedBytes)
 
         // Check dimensions of the cropped image
@@ -128,7 +129,7 @@ class CropProcessorTest {
         val x2 = 100
         val y2 = 100
 
-        val croppedBytes = cropProcessor.crop(sourceImage, "image/png", x1, y1, x2, y2)
+        val croppedBytes = cropProcessor.applyFilter(sourceImage, "image/png", CropProps(x1, y1, x2, y2))
         val croppedImage = ImmutableImage.loader().fromBytes(croppedBytes)
 
         // Check dimensions of the cropped image
@@ -146,7 +147,7 @@ class CropProcessorTest {
 
         // Expect an IllegalArgumentException for unsupported content types
         assertThrows(IllegalArgumentException::class.java) {
-            cropProcessor.crop(sourceImage, "image/gif", x1, y1, x2, y2)
+            cropProcessor.applyFilter(sourceImage, "image/gif", CropProps(x1, y1, x2, y2))
         }
     }
 }

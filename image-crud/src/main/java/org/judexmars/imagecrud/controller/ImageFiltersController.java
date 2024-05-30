@@ -68,7 +68,7 @@ public class ImageFiltersController {
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponse applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters,
-                                                   @RequestBody Map<String, String> props,
+                                                   @RequestBody Map<String, Object> props,
                                                    @AuthenticationPrincipal String username) {
     var account = accountService.getByUsername(username);
     return imageFiltersService.applyFilters(imageId, filters, props, account.id());

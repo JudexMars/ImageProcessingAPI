@@ -13,5 +13,5 @@ data class ImageStatusMessage(
     val imageId: UUID,
     val requestId: UUID,
     val filters: List<String>,
-    val props: Map<String, String>,
+    val props: Map<String, Any>,
 )

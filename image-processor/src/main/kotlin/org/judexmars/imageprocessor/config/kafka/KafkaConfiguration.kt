@@ -1,6 +1,7 @@
 package org.judexmars.imageprocessor.config.kafka
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.RoundRobinAssignor
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.RoundRobinPartitioner
@@ -8,6 +9,8 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.judexmars.imageprocessor.config.ProcessorProperties
 import org.judexmars.imageprocessor.dto.ImageStatusMessage
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -19,14 +22,20 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties.AckMode
+import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
+import org.springframework.util.backoff.FixedBackOff
 
 @Configuration
 @EnableConfigurationProperties(KafkaProperties::class)
 class KafkaConfiguration(
     private val properties: KafkaProperties,
 ) {
+    companion object {
+        val log: Logger = LoggerFactory.getLogger(KafkaConfiguration::class.java)
+    }
+
     @Bean
     fun producerFactory(): ProducerFactory<String, ImageStatusMessage> {
         val props = properties.buildProducerProperties(null).toMutableMap()
@@ -72,8 +81,20 @@ class KafkaConfiguration(
                 ackMode = AckMode.MANUAL
                 setAutoStartup(true)
                 setConcurrency(processorProperties.concurrency)
+                setCommonErrorHandler(errorHandler())
                 consumerFactory = consumerFactory(processorProperties)
             }
         }
+    }
+
+    private fun errorHandler(): DefaultErrorHandler {
+        val fixedBackOff = FixedBackOff(1000, 3)
+        return DefaultErrorHandler({ consumerRecord: ConsumerRecord<*, *>?, exception: Exception? ->
+            log.info(
+                "Consumer error for record: {}\n{}",
+                consumerRecord,
+                exception.toString(),
+            )
+        }, fixedBackOff)
     }
 }

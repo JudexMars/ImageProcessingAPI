@@ -1,7 +1,6 @@
 package org.judexmars.imageprocessor.service
 
 import jakarta.annotation.PostConstruct
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.judexmars.imageprocessor.dto.ImageStatusMessage
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate
@@ -15,6 +14,8 @@ class ProcessorListener(
     private val processors: List<Processor>,
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
+//    private val allowedTypes = ProcessorType.entries.map(ProcessorType::toString)
+
     companion object {
         private val log = LoggerFactory.getLogger(ProcessorListener::class.java)
     }
@@ -29,18 +30,20 @@ class ProcessorListener(
         topics = ["images.wip"],
     )
     fun listen(
-        record: ConsumerRecord<String, ImageStatusMessage>,
+        statusMessage: ImageStatusMessage,
         acknowledgment: Acknowledgment?,
     ) {
-        val imageId = redisTemplate.opsForValue().get(record.value().requestId.toString())
-        if (imageId != record.value().imageId.toString()) {
-            processors.forEach { it.process(record.value()) }
+        val imageId = statusMessage.imageId.toString()
+        val requestId = statusMessage.requestId.toString()
+        val cachedImageId = redisTemplate.opsForValue().get(requestId)
+        if (imageId != cachedImageId) {
+            processors.forEach { it.process(statusMessage) }
             redisTemplate.opsForValue().set(
-                record.value().requestId.toString(),
-                record.value().imageId.toString(),
+                requestId,
+                imageId,
             )
             redisTemplate.expire(
-                record.value().requestId.toString(),
+                requestId,
                 1L,
                 TimeUnit.HOURS,
             )
