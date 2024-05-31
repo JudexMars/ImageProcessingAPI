@@ -36,13 +36,12 @@ class TagProcessor(
     template: KafkaTemplate<String, ImageStatusMessage>,
     properties: ProcessorProperties,
     private val imaggaProperties: ImaggaProperties,
+    private val restClient: RestClient,
 ) : AbstractProcessor<Any>(
         s3Service,
         template,
         properties,
     ) {
-    private val restClient: RestClient = RestClient.create()
-
     private val authHeader: String by lazy {
         val src = "${imaggaProperties.apiKey}:${imaggaProperties.apiSecret}"
         val encoded = Base64.getEncoder().encodeToString(src.toByteArray(Charsets.UTF_8))
