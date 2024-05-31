@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="2024-04-13-01-create-apply-filter-request" author="JudexMars">
+        <createTable tableName="request_status">
+            <column name="id" type="int">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="apply_filter_request">
+            <column name="request_id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="image_id" type="uuid">
+                <constraints nullable="false"
+                             foreignKeyName="apply_filter_request_image_fk"
+                             references="image(id)"/>
+            </column>
+            <column name="modified_image_id" type="uuid">
+                <constraints nullable="true"
+                             foreignKeyName="apply_filter_request_modified_image_fk"
+                             references="image(id)"/>
+            </column>
+            <column name="status_id" type="int">
+                <constraints foreignKeyName="apply_filter_request_request_status_fk"
+                             references="request_status(id)"
+                             nullable="false"/>
+            </column>
+        </createTable>
+        <createSequence cacheSize="1" cycle="false" dataType="bigint" incrementBy="1"
+                        maxValue="9223372036854775807" minValue="1" sequenceName="request_status_seq"
+                        startValue="1"/>
+    </changeSet>
+</databaseChangeLog>

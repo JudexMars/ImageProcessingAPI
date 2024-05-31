@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
+import org.judexmars.imagecrud.dto.imagefilters.BasicRequestStatus;
 import org.judexmars.imagecrud.model.PrivilegeEntity;
+import org.judexmars.imagecrud.model.RequestStatus;
 import org.judexmars.imagecrud.model.RoleEntity;
 import org.judexmars.imagecrud.repository.PrivilegeRepository;
+import org.judexmars.imagecrud.repository.RequestStatusRepository;
 import org.judexmars.imagecrud.repository.RoleRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -25,11 +28,14 @@ public class DataLoader implements ApplicationRunner {
 
   private final RoleRepository roleRepository;
 
+  private final RequestStatusRepository requestStatusRepository;
+
   @Override
   @Transactional
   public void run(ApplicationArguments args) {
     initPrivileges();
     initRoles();
+    initStatuses();
   }
 
   private void initPrivileges() {
@@ -65,6 +71,16 @@ public class DataLoader implements ApplicationRunner {
 
     for (var role : roles) {
       createIf(role, roleRepository, () -> condition.test(role.getName()));
+    }
+  }
+
+  private void initStatuses() {
+
+    Predicate<String> condition = (String x) -> requestStatusRepository.findByName(x).isEmpty();
+
+    for (var status : BasicRequestStatus.values()) {
+      createIf(new RequestStatus().setName(status.name()),
+          requestStatusRepository, () -> condition.test(status.name()));
     }
   }
 

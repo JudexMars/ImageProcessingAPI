@@ -75,8 +75,8 @@ public class SecurityConfig {
   /**
    * Password encoder.
    * <p>
-   *     Password encoder is used to encode and decode passwords.
-   *     It is used to hash passwords before saving them to the database.
+   * Password encoder is used to encode and decode passwords.
+   * It is used to hash passwords before saving them to the database.
    * </p>
    *
    * @return PasswordEncoder
@@ -89,7 +89,7 @@ public class SecurityConfig {
   /**
    * Authentication provider.
    *
-   * @param accountService account service to use for authentication
+   * @param accountService  account service to use for authentication
    * @param passwordEncoder password encoder to use for authentication
    * @return authentication provider
    */

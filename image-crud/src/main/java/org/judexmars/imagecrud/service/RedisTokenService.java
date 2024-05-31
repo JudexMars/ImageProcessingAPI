@@ -48,7 +48,7 @@ public class RedisTokenService {
   public void saveRefreshToken(String username, String refreshToken) {
     var expirationInSeconds =
         jwtTokenUtils.getExpirationDateFromRefreshToken(refreshToken).getTime()
-                - new Date().getTime() / 1000;
+            - new Date().getTime() / 1000;
     String key = "user:" + username + ":refresh_tokens";
     redisTemplate.opsForList().rightPush(key, refreshToken);
     redisTemplate.expire(key, expirationInSeconds, TimeUnit.SECONDS);

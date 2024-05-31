@@ -21,7 +21,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,12 +52,12 @@ public class ImageController {
    */
   @Operation(summary = "Загрузка нового изображения в систему",
       description = """
-      В рамках данного метода необходимо:
-      1. Провалидировать файл. Максимальный размер файла - 10Мб,\s
-      поддерживаемые расширения - png, jpeg.
-      2. Загрузить файл в S3 хранилище.
-      3. Сохранить в БД мета-данные файла - название; размер; ИД файла в S3; ИД пользователя,\s
-      которому файл принадлежит.""")
+          В рамках данного метода необходимо:
+          1. Провалидировать файл. Максимальный размер файла - 10Мб,\s
+          поддерживаемые расширения - png, jpeg.
+          2. Загрузить файл в S3 хранилище.
+          3. Сохранить в БД мета-данные файла - название; размер; ИД файла в S3; ИД пользователя,\s
+          которому файл принадлежит.""")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Успех выполнения операции",
           useReturnTypeSchema = true),
@@ -146,8 +145,8 @@ public class ImageController {
    */
   @Operation(summary = "Получение списка изображений, которые доступны пользователю",
       description = """
-      В рамках данного метода необходимо:
-      1. Получить мета-информацию о всех изображениях, которые доступны пользователю""")
+          В рамках данного метода необходимо:
+          1. Получить мета-информацию о всех изображениях, которые доступны пользователю""")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Успех выполнения операции",
           useReturnTypeSchema = true),

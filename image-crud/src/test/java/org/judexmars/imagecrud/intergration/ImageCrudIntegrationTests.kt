@@ -7,14 +7,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.context.web.WebAppConfiguration
 
-
 @SpringBootTest
 @ExtendWith(SpringExtension::class)
 @WebAppConfiguration
 class ImageCrudIntegrationTests : AbstractBaseTest() {
-
     @Test
     fun contextLoad() {
-
     }
 }

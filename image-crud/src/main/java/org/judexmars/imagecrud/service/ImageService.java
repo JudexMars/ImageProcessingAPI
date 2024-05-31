@@ -109,7 +109,7 @@ public class ImageService {
   /**
    * Safely get image as entity.
    *
-   * @param id id of the image
+   * @param id        id of the image
    * @param accountId id of the account requesting this
    * @return image entity
    */
