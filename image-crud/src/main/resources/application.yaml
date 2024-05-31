@@ -51,3 +51,12 @@ springdoc:
     path: /swagger-ui
 server:
   port: 8080
+resilience4j:
+  ratelimiter:
+    instances:
+      filter:
+        limit-for-period: 1
+        limit-refresh-period:
+          seconds: 1s
+        timeout-duration:
+          seconds: 5s

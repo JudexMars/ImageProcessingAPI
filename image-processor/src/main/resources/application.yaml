@@ -1,3 +1,4 @@
+
 minio:
   url: ${MINIO_URL:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:judex}
@@ -11,3 +12,29 @@ props:
   wip-topic: ${PROPS_WIP_TOPIC:images.wip}
   done-topic: ${PROPS_DONE_TOPIC:images.done}
   type: ${PROPS_TYPE:crop}
+resilience4j:
+  retry:
+    instances:
+      imaggaRetry:
+        max-attempts: 3
+        wait-duration:
+          seconds: 1
+  circuitbreaker:
+    instances:
+      imaggaCB:
+        register-health-indicator: true
+        wait-duration-in-open-state:
+          seconds: 5
+        sliding-window-type: time_based
+        sliding-window-size: 10
+  ratelimiter:
+    instances:
+      imaggaRL:
+        limit-for-period: 1
+        limit-refresh-period:
+          seconds: 1s
+        timeout-duration:
+          seconds: 5s
+spring:
+  profiles:
+    include: dev

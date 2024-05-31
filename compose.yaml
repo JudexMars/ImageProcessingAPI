@@ -414,6 +414,55 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - shared-network
+  tag-processor:
+    build:
+      context: image-processor
+      dockerfile: docker/Dockerfile
+    depends_on:
+      image-crud-s3:
+        condition: service_started
+      kafka-1:
+        condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
+      tag-processor-redis:
+        condition: service_started
+    secrets:
+      - ssl-keystore
+      - ssl-truststore
+    ports:
+      - 8085:8085
+    environment:
+      - PROPS_TYPE=TAG
+      - PROPS_GROUP=tag_consumer_group
+      - PROPS_CONCURRENCY=2
+      - PROPS_WIP_TOPIC=images.wip
+      - PROPS_DONE_TOPIC=images.done
+
+      - SERVER_PORT=8085
+      - SPRING_DATA_REDIS_HOST=tag-processor-redis
+      - SPRING_DATA_REDIS_PORT=6384
+      - SPRING_DATA_REDIS_PASSWORD=6k_j76,dDUl_
+      - MINIO_URL=http://image-crud-s3:9000
+      - MINIO_ACCESS-KEY=judex
+      - MINIO_SECRET-KEY=password
+      - MINIO_MAIN_BUCKET=minio-storage
+      - MINIO_MINOR_BUCKET=minio-temp
+      - MINIO_IMAGE-SIZE=10485760
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka-1:9082,kafka-2:9083,kafka-3:9084
+      - SPRING_KAFKA_PROPERTIES_SECURITY_PROTOCOL=SASL_SSL
+      - SPRING_KAFKA_PROPERTIES_SASL_MECHANISM=PLAIN
+      - SPRING_KAFKA_PROPERTIES_SASL_JAAS_CONFIG=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION=/run/secrets/ssl-truststore
+      - SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION=/run/secrets/ssl-keystore
+      - SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD=123456
+      - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
+    networks:
+      - shared-network
   crop-processor-redis:
     image: redis:latest
     restart: always
@@ -451,7 +500,17 @@ services:
       - "6383:6383"
     command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_ --port 6383
     volumes:
-      - redis-volume-remove-background:/data
+      - redis-volume-brightness:/data
+    networks:
+      - shared-network
+  tag-processor-redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6384:6384"
+    command: redis-server --save 20 1 --logLevel warning --requirePass 6k_j76,dDUl_ --port 6384
+    volumes:
+      - redis-volume-tag:/data
     networks:
       - shared-network
 
@@ -481,4 +540,6 @@ volumes:
   redis-volume-crop:
   redis-volume-reverse-colors:
   redis-volume-remove-background:
+  redis-volume-brightness:
+  redis-volume-tag:
   
