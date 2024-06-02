@@ -66,6 +66,8 @@ class TagProcessor(
         }
     }
 
+    private val lock = Any()
+
     @Retry(name = "imaggaRetry")
     @CircuitBreaker(name = "imaggaCB")
     @RateLimiter(name = "imaggaRL")
@@ -74,12 +76,20 @@ class TagProcessor(
         contentType: String,
         props: Any?,
     ): ByteArray {
-        if (remainingRequests.get() <= 1) throw IllegalStateException("API Limit Exceed")
-        val uploadId = uploadImage(source)
-        remainingRequests.decrementAndGet()
-        val tags = getTagsForImage(uploadId)
-        remainingRequests.decrementAndGet()
-        return addTagsToImage(source, contentType, tags)
+        synchronized(lock) {
+            if (remainingRequests.get() <= 1) throw IllegalStateException("API Limit Exceed")
+            remainingRequests.decrementAndGet()
+            remainingRequests.decrementAndGet()
+        }
+
+        try {
+            val uploadId = uploadImage(source)
+            val tags = getTagsForImage(uploadId)
+            return addTagsToImage(source, contentType, tags)
+        } catch (ex: Exception) {
+            remainingRequests.incrementAndGet()
+            throw ex
+        }
     }
 
     private fun uploadImage(source: ByteArray): String {
