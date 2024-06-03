@@ -38,3 +38,14 @@ resilience4j:
 spring:
   profiles:
     include: dev
+management:
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus

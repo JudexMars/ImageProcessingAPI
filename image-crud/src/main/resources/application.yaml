@@ -60,3 +60,14 @@ resilience4j:
           seconds: 1s
         timeout-duration:
           seconds: 5s
+management:
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus

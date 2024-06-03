@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.controller;
 
+import io.micrometer.core.annotation.Counted;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -70,6 +71,7 @@ public class ImageController {
   @PreAuthorize("hasAuthority('UPLOAD_IMAGE')")
   @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
       produces = "application/json")
+  @Counted(value = "requests.upload-image.total", description = "Total amount of requests")
   public UploadImageResponseDto uploadImage(
       @RequestPart(value = "file") MultipartFile file,
       @AuthenticationPrincipal String username)
