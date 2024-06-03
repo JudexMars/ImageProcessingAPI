@@ -569,9 +569,14 @@ services:
     networks:
       - shared-network
   grafana:
-    image: grafana/grafana
+    build:
+      context: ./image-crud
+      dockerfile: ./docker/grafana/Dockerfile
     restart: always
+    volumes:
+      - grafana-volume:/var/lib/grafana
     environment:
+      - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
       - "6386:3000"
@@ -606,4 +611,4 @@ volumes:
   redis-volume-remove-background:
   redis-volume-brightness:
   redis-volume-tag:
-  
+  grafana-volume:
