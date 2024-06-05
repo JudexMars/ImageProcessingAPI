@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.service;
 
+import io.micrometer.core.annotation.Counted;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,10 @@ public class AccountService implements UserDetailsService {
    * @param createAccountDto dto containing all the information needed for creation
    * @return created account as {@link AccountDto}
    */
+  @Counted(
+      value = "registrations.count",
+      description = "Amount of new users"
+  )
   public AccountDto createAccount(CreateAccountDto createAccountDto) {
     if (accountRepository.findByUsername(createAccountDto.username()).isPresent()) {
       throw new AccountAlreadyExistsException(createAccountDto.username());

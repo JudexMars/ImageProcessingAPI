@@ -8,21 +8,21 @@ scrape_configs:
       - targets: ['image-crud:8080']
 
   - job_name: 'crop-processor'
-    metrics_path: /api/v1/actuator/prometheus
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['crop-processor:8081']
 
   - job_name: 'reverse-colors-processor'
-    metrics_path: /api/v1/actuator/prometheus
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['reverse-colors-processor:8082']
 
   - job_name: 'brightness-processor'
-    metrics_path: /api/v1/actuator/prometheus
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['brightness-processor:8084']
 
   - job_name: 'tag-processor'
-    metrics_path: /api/v1/actuator/prometheus
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ['tag-processor:8085']

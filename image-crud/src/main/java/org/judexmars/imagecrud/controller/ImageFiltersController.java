@@ -1,8 +1,6 @@
 package org.judexmars.imagecrud.controller;
 
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import io.micrometer.core.annotation.Counted;
-import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -70,8 +68,6 @@ public class ImageFiltersController {
   })
   @RateLimiter(name = "filterRL")
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
-  @Counted(value = "requests.apply-filter.total", description = "Total amount of requests")
-  @Timed(value = "requests.apply-filter.time", description = "Execution time")
   public ApplyImageFiltersResponse applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters,
                                                    @RequestBody Map<String, Object> props,

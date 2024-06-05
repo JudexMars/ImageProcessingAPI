@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.service;
 
+import io.micrometer.core.annotation.Counted;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,6 +67,10 @@ public class ImageService {
    * @return meta information of this image as {@link ImageDto}
    * @throws UploadFailedException if the image cannot be uploaded
    */
+  @Counted(
+      value = "uploadimage.count",
+      description = "Amount of uploaded images"
+  )
   public UploadImageResponseDto uploadImage(MultipartFile file, String username)
       throws UploadFailedException {
     try {

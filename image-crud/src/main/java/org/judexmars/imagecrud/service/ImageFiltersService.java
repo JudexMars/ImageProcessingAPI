@@ -44,16 +44,16 @@ public class ImageFiltersService {
   /**
    * Applies filters to the selected image asynchronously.
    *
-   * @param imageId id of the image
-   * @param filters filter types
+   * @param imageId   id of the image
+   * @param filters   filter types
    * @param accountId id of account requesting this
    * @return DTO with request id
    */
   @Transactional
   public ApplyImageFiltersResponse applyFilters(UUID imageId,
-                                                   List<FilterType> filters,
-                                                   Map<String, Object> props,
-                                                   UUID accountId) {
+                                                List<FilterType> filters,
+                                                Map<String, Object> props,
+                                                UUID accountId) {
     var meta = imageService.getImageMetaAsEntitySafely(imageId, accountId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());
     var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImage(meta);
@@ -74,7 +74,7 @@ public class ImageFiltersService {
    * @param imageId   id of the image
    * @param requestId id of the request
    * @return DTO containing id of the modified image
-   *     (or the original if it hasn't been processed yet) and request status
+   * (or the original if it hasn't been processed yet) and request status
    */
   @Transactional
   public GetModifiedImageDto getApplyImageFilterRequest(UUID imageId,
