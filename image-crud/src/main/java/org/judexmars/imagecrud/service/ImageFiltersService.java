@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.service;
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,10 @@ public class ImageFiltersService {
    * @return DTO with request id
    */
   @Transactional
+  @Observed(
+      name = "request-apply-filter",
+      contextualName = "applying-filter",
+      lowCardinalityKeyValues = {"source", "api"})
   public ApplyImageFiltersResponse applyFilters(UUID imageId,
                                                 List<FilterType> filters,
                                                 Map<String, Object> props,
@@ -74,7 +79,7 @@ public class ImageFiltersService {
    * @param imageId   id of the image
    * @param requestId id of the request
    * @return DTO containing id of the modified image
-   * (or the original if it hasn't been processed yet) and request status
+   *     (or the original if it hasn't been processed yet) and request status
    */
   @Transactional
   public GetModifiedImageDto getApplyImageFilterRequest(UUID imageId,

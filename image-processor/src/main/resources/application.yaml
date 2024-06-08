@@ -40,6 +40,9 @@ spring:
   application:
     name: image-processor
 management:
+  tracing:
+    sampling:
+      probability: 1.0
   endpoint:
     health:
       show-details: always
@@ -53,3 +56,6 @@ management:
     web:
       exposure:
         include: health, info, metrics, prometheus
+  zipkin:
+    tracing:
+      endpoint: http://tempo:9411/api/v2/spans

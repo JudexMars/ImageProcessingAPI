@@ -582,6 +582,20 @@ services:
       - "6386:3000"
     networks:
       - shared-network
+  tempo:
+    image: grafana/tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    user: "0"
+    volumes:
+      - tempo-volume:/tmp/tempo
+      - ./image-crud/environment/tempo/tempo-local.yaml:/etc/tempo.yaml:ro
+    ports:
+      - "14268"  # jaeger ingest
+      - "9411:9411" # zipkin
+      - "3200:3200"
+      - "3201:3201"
+    networks:
+      - shared-network
 
 secrets:
   postgres-password:
@@ -612,3 +626,4 @@ volumes:
   redis-volume-brightness:
   redis-volume-tag:
   grafana-volume:
+  tempo-volume:
