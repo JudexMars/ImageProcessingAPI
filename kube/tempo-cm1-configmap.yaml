@@ -1,0 +1,23 @@
+apiVersion: v1
+data:
+  tempo-local.yaml: |-
+    server:
+      http_listen_port: 3200
+      grpc_listen_port: 3201
+
+    distributor:
+      receivers:
+        zipkin:
+
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /tmp/tempo
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: tempo
+  name: tempo-cm1

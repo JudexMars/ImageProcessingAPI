@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: kafka-2
+  name: kafka-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kafka-2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yaml
+        kompose.version: 1.34.0 (HEAD)
+      labels:
+        io.kompose.service: kafka-2
+    spec:
+      containers:
+        - env:
+            - name: CLUSTER_ID
+              value: L0ZEQh1yTbGhNNUE7-6wSQ
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: INTERNAL://kafka-2:9093,EXTERNAL://kafka-2:9083, EXTERNAL_SAME_HOST://localhost:29093
+            - name: KAFKA_BROKER_ID
+              value: "2"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: CONTROLLER
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: 1@kafka-1:9093,2@kafka-2:9094,3@kafka-3:9095
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: INTERNAL
+            - name: KAFKA_LISTENERS
+              value: INTERNAL://kafka-2:9093,EXTERNAL://kafka-2:9083,CONTROLLER://kafka-2:9094, EXTERNAL_SAME_HOST://:29093
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: INTERNAL:SASL_SSL,EXTERNAL:SASL_SSL,CONTROLLER:SSL,EXTERNAL_SAME_HOST:PLAINTEXT
+            - name: KAFKA_MIN_INSYNC_REPLICAS
+              value: "1"
+            - name: KAFKA_OPTS
+              value: -djava.security.auth.login.config=/run/secrets/jaas
+            - name: KAFKA_PROCESS_ROLES
+              value: broker,controller
+            - name: KAFKA_SASL_ENABLED_MECHANISMS
+              value: PLAIN
+            - name: KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL
+              value: PLAIN
+            - name: KAFKA_SSL_CLIENT_AUTH
+              value: required
+            - name: KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
+            - name: KAFKA_SSL_KEYSTORE_LOCATION
+              value: /run/secrets/ssl-keystore
+            - name: KAFKA_SSL_KEYSTORE_PASSWORD
+              value: "123456"
+            - name: KAFKA_SSL_KEY_PASSWORD
+              value: "123456"
+            - name: KAFKA_SSL_TRUSTSTORE_LOCATION
+              value: /run/secrets/ssl-truststore
+            - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
+              value: "123456"
+          image: confluentinc/cp-kafka:latest
+          livenessProbe:
+            exec:
+              command:
+                - bash /usr/bin/check_kafka_topics.sh kafka-2:9093 /usr/bin/kafka_client.properties
+            failureThreshold: 10
+            periodSeconds: 30
+            timeoutSeconds: 10
+          name: kafka-2
+          ports:
+            - containerPort: 9083
+              protocol: TCP
+            - containerPort: 29093
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /run/secrets
+              name: secret-files
+            - mountPath: /usr/bin/check_kafka_topics.sh
+              name: kafka-2-cm0
+              subPath: check_kafka_topics.sh
+            - mountPath: /usr/bin/kafka_client.properties
+              name: kafka-2-cm1
+              subPath: kafka_client.properties
+      restartPolicy: Always
+      volumes:
+        - name: secret-files
+          projected:
+            sources:
+              - secret:
+                  name: ssl-keystore
+              - secret:
+                  name: ssl-truststore
+              - secret:
+                  name: jaas
+        - configMap:
+            items:
+              - key: check_kafka_topics.sh
+                path: check_kafka_topics.sh
+            name: kafka-2-cm0
+          name: kafka-2-cm0
+        - configMap:
+            items:
+              - key: kafka_client.properties
+                path: kafka_client.properties
+            name: kafka-2-cm1
+          name: kafka-2-cm1
