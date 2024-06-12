@@ -38,11 +38,11 @@ spec:
               value: SASL_SSL
             - name: KAFKA_CLUSTERS_0_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
             - name: KAFKA_CLUSTERS_0_PROPERTIES_SSL_KEYSTORE_LOCATION
-              value: /run/secrets/ssl-keystore
+              value: /run/custom-secrets/ssl-keystore
             - name: KAFKA_CLUSTERS_0_PROPERTIES_SSL_KEYSTORE_PASSWORD
               value: "123456"
             - name: KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION
-              value: /run/secrets/ssl-truststore
+              value: /run/custom-secrets/ssl-truststore
             - name: KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD
               value: "123456"
           image: provectuslabs/kafka-ui:latest
@@ -51,7 +51,7 @@ spec:
             - containerPort: 8080
               protocol: TCP
           volumeMounts:
-            - mountPath: /run/secrets
+            - mountPath: /run/custom-secrets
               name: secret-files
       restartPolicy: Always
       volumes:

@@ -35,11 +35,11 @@ spec:
             - name: KAFKA_SECURITY_PROTOCOL
               value: SASL_SSL
             - name: KAFKA_SSL_CAFILE
-              value: /run/secrets/ssl-cafile
+              value: /run/custom-secrets/ssl-cafile
             - name: KAFKA_SSL_CERTFILE
-              value: /run/secrets/ssl-certfile
+              value: /run/custom-secrets/ssl-certfile
             - name: KAFKA_SSL_KEYFILE
-              value: /run/secrets/ssl-keyfile
+              value: /run/custom-secrets/ssl-keyfile
             - name: MINIO_ACCESS_KEY
               value: judex
             - name: MINIO_ENDPOINT
@@ -48,10 +48,10 @@ spec:
               value: password
             - name: WIP_TOPIC
               value: images.wip
-          image: remove-background-processor
+          image: judexmars/cv-image-processor:1.0.0
           name: remove-background-processor
           volumeMounts:
-            - mountPath: /run/secrets
+            - mountPath: /run/custom-secrets
               name: secret-files
       restartPolicy: Always
       volumes:
@@ -63,4 +63,4 @@ spec:
               - secret:
                   name: ssl-certfile
               - secret:
-                  name: ssl_cafile
+                  name: ssl-cafile

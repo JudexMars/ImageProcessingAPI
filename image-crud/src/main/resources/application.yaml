@@ -4,7 +4,7 @@ spring:
   profiles:
     include: dev
   config:
-    import: optional:configtree:/run/secrets/
+    import: optional:configtree:/run/secrets/, optional:configtree:/run/custom-secrets/
   application:
     name: image-crud
   liquibase:

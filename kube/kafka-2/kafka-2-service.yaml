@@ -9,6 +9,9 @@ metadata:
   name: kafka-2
 spec:
   ports:
+    - name: "9094"
+      port: 9094
+      targetPort: 9094
     - name: "9083"
       port: 9083
       targetPort: 9083

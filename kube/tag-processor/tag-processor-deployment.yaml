@@ -62,30 +62,39 @@ spec:
               value: SASL_SSL
             - name: SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM
             - name: SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_LOCATION
-              value: /run/secrets/ssl-keystore
+              value: /run/custom-secrets/ssl-keystore
             - name: SPRING_KAFKA_PROPERTIES_SSL_KEYSTORE_PASSWORD
               value: "123456"
             - name: SPRING_KAFKA_PROPERTIES_SSL_KEY_PASSWORD
               value: "123456"
             - name: SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_LOCATION
-              value: /run/secrets/ssl-truststore
+              value: /run/custom-secrets/ssl-truststore
             - name: SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD
               value: "123456"
-          image: tag-processor
-          livenessProbe:
-            exec:
-              command:
-                - wget -T5 -qO- http://localhost:8085/actuator/health | grep UP || exit 1
-            failureThreshold: 5
-            initialDelaySeconds: 20
-            periodSeconds: 15
-            timeoutSeconds: 5
+            - name: IMAGGA_API_KEY
+              value: "acc_f246d9a37af99c0"
+            - name: IMAGGA_API_SECRET
+              value: "f92c8b1c49553bdb4575f3f483405af0"
+            - name: IMAGGA_URI
+              value: "https://api.imagga.com/v2/"
+          image: judexmars/image-processor:1.0.0
+#          livenessProbe:
+#            httpGet:
+#              path: /api/v1/actuator/health
+#              port: 8080
+##            exec:
+##              command:
+##                - wget -T5 -qO- http://localhost:8085/actuator/health | grep UP || exit 1
+#            failureThreshold: 5
+#            initialDelaySeconds: 20
+#            periodSeconds: 15
+#            timeoutSeconds: 5
           name: tag-processor
           ports:
             - containerPort: 8085
               protocol: TCP
           volumeMounts:
-            - mountPath: /run/secrets
+            - mountPath: /run/custom-secrets
               name: secret-files
       restartPolicy: Always
       volumes:

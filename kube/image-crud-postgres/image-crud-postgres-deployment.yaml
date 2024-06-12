@@ -29,7 +29,7 @@ spec:
             - name: POSTGRES_DB
               value: image-db
             - name: POSTGRES_PASSWORD_FILE
-              value: /run/secrets/postgres-password
+              value: /run/custom-secrets/postgres-password
             - name: POSTGRES_USER
               value: judex
           image: postgres
@@ -38,9 +38,8 @@ spec:
             - containerPort: 5432
               protocol: TCP
           volumeMounts:
-            - mountPath: /run/secrets
+            - mountPath: /run/custom-secrets
               name: postgres-password
-              subPath: postgres-password
             - mountPath: /var/lib/postgresql/data
               name: postgres-volume
       restartPolicy: Always
