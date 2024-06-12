@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.judexmars.imagecrud.utils.JwtTokenUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,7 @@ public class RedisTokenService {
 
   private final RedisTemplate<String, String> redisTemplate;
 
-  private final JwtTokenUtils jwtTokenUtils;
+  private final JwtTokenService jwtTokenService;
 
   /**
    * Deletes refresh token from db.
@@ -47,7 +46,7 @@ public class RedisTokenService {
    */
   public void saveRefreshToken(String username, String refreshToken) {
     var expirationInSeconds =
-        jwtTokenUtils.getExpirationDateFromRefreshToken(refreshToken).getTime()
+        jwtTokenService.getExpirationDateFromRefreshToken(refreshToken).getTime()
             - new Date().getTime() / 1000;
     String key = "user:" + username + ":refresh_tokens";
     redisTemplate.opsForList().rightPush(key, refreshToken);

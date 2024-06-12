@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.judexmars.imagecrud.dto.BaseResponseDto;
@@ -16,10 +17,11 @@ import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 import org.judexmars.imagecrud.dto.imagefilters.GetModifiedImageDto;
 import org.judexmars.imagecrud.service.AccountService;
 import org.judexmars.imagecrud.service.ImageFiltersService;
-import org.judexmars.imagecrud.utils.SecurityUtils;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,8 +38,6 @@ public class ImageFiltersController {
   private final ImageFiltersService imageFiltersService;
 
   private final AccountService accountService;
-
-  private final SecurityUtils securityUtils;
 
   /**
    * Apply selected filters to the uploaded image.
@@ -67,10 +67,11 @@ public class ImageFiltersController {
   })
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponse applyFilters(@PathVariable(name = "image-id") UUID imageId,
-                                                @RequestParam List<FilterType> filters) {
-    var loggedInUsername = securityUtils.getLoggedInUsername();
-    var account = accountService.getByUsername(loggedInUsername);
-    return imageFiltersService.applyFilters(imageId, account.id(), filters);
+                                                   @RequestParam List<FilterType> filters,
+                                                   @RequestBody Map<String, Object> props,
+                                                   @AuthenticationPrincipal String username) {
+    var account = accountService.getByUsername(username);
+    return imageFiltersService.applyFilters(imageId, filters, props, account.id());
   }
 
   /**
@@ -80,7 +81,7 @@ public class ImageFiltersController {
    */
   @Operation(summary = "Получение ИД измененного файла по ИД запроса", description = """
       В рамках данного метода необходимо найти и вернуть по ИД пользовательского запроса\s
-      ИД соответсвующего ему файла и статус, в котором находится процесс применения фильтров.
+      ИД соответствующего ему файла и статус, в котором находится процесс применения фильтров.
       По ИД оригинального изображения нужно убедиться, что ИД запроса относится к нему и\s
       что у пользователя есть доступ к данному изображению (оригинальному).
       """)
@@ -96,9 +97,9 @@ public class ImageFiltersController {
   })
   @GetMapping(value = "/image/{image-id}/filters/{request-id}", produces = "application/json")
   public GetModifiedImageDto getModifiedImage(@PathVariable(name = "image-id") UUID imageId,
-                                              @PathVariable(name = "request-id") UUID requestId) {
-    var loggedInUsername = securityUtils.getLoggedInUsername();
-    var account = accountService.getByUsername(loggedInUsername);
+                                              @PathVariable(name = "request-id") UUID requestId,
+                                              @AuthenticationPrincipal String username) {
+    var account = accountService.getByUsername(username);
     return imageFiltersService.getApplyImageFilterRequest(imageId, requestId, account.id());
   }
 }

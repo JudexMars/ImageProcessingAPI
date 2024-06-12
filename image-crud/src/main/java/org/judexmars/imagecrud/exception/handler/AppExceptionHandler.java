@@ -75,7 +75,7 @@ public class AppExceptionHandler {
    * @return the response entity with the error message
    */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  protected ResponseEntity<BaseResponseDto> handleMethodArgumentNotValid(
+  public ResponseEntity<BaseResponseDto> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex) {
     List<String> body =
         ex.getBindingResult().getAllErrors().stream()
@@ -95,7 +95,7 @@ public class AppExceptionHandler {
    */
   @ExceptionHandler(
         {InvalidJwtException.class, ExpiredJwtException.class, UnsupportedJwtException.class,
-    MalformedJwtException.class, SignatureException.class})
+            MalformedJwtException.class, SignatureException.class})
   public ResponseEntity<BaseResponseDto> handleAccountJwtException() {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(new BaseResponseDto(false, messageRenderer.render("exception.jwt")));

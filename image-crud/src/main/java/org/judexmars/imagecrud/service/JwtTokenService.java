@@ -1,4 +1,4 @@
-package org.judexmars.imagecrud.utils;
+package org.judexmars.imagecrud.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -15,15 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.judexmars.imagecrud.config.security.JwtProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
  * Utility class for working with JWT tokens.
  */
-@Component
+@Service
 @RequiredArgsConstructor
 @Slf4j
-public class JwtTokenUtils {
+public class JwtTokenService {
 
   private final JwtProperties jwtProperties;
 

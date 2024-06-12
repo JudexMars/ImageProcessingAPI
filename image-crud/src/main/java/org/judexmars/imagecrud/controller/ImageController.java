@@ -16,11 +16,11 @@ import org.judexmars.imagecrud.exception.UploadFailedException;
 import org.judexmars.imagecrud.service.AccountService;
 import org.judexmars.imagecrud.service.ImageService;
 import org.judexmars.imagecrud.service.MessageRenderer;
-import org.judexmars.imagecrud.utils.SecurityUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +40,6 @@ public class ImageController {
 
   private final ImageService imageService;
   private final AccountService accountService;
-  private final SecurityUtils securityUtils;
   private final MessageRenderer messageRenderer;
 
   /**
@@ -71,9 +70,11 @@ public class ImageController {
   @PreAuthorize("hasAuthority('UPLOAD_IMAGE')")
   @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
       produces = "application/json")
-  public UploadImageResponseDto uploadImage(@RequestPart(value = "file") MultipartFile file)
+  public UploadImageResponseDto uploadImage(
+      @RequestPart(value = "file") MultipartFile file,
+      @AuthenticationPrincipal String username)
       throws UploadFailedException {
-    return imageService.uploadImage(file, securityUtils.getLoggedInUsername());
+    return imageService.uploadImage(file, username);
   }
 
   /**
@@ -100,9 +101,10 @@ public class ImageController {
   })
   @PreAuthorize("hasAuthority('DOWNLOAD_IMAGE')")
   @GetMapping(value = "/image/{image-id}")
-  public ResponseEntity<byte[]> downloadImage(@PathVariable(name = "image-id") UUID id)
+  public ResponseEntity<byte[]> downloadImage(
+      @PathVariable(name = "image-id") UUID id,
+      @AuthenticationPrincipal String username)
       throws Exception {
-    var username = securityUtils.getLoggedInUsername();
     var account = accountService.getByUsername(username);
     var image = imageService.downloadImage(id, account.id());
     return ResponseEntity.ok()
@@ -131,8 +133,9 @@ public class ImageController {
   })
   @PreAuthorize("hasAuthority('DELETE_IMAGE')")
   @DeleteMapping(value = "/image/{image-id}", produces = "application/json")
-  public BaseResponseDto deleteImage(@PathVariable(name = "image-id") UUID id) {
-    var username = securityUtils.getLoggedInUsername();
+  public BaseResponseDto deleteImage(
+      @PathVariable(name = "image-id") UUID id,
+      @AuthenticationPrincipal String username) {
     var account = accountService.getByUsername(username);
     imageService.deleteImage(id, account.id());
     return new BaseResponseDto(true, messageRenderer.render("response.image.delete_successful"));
@@ -155,8 +158,9 @@ public class ImageController {
               schema = @Schema(implementation = BaseResponseDto.class))),
   })
   @GetMapping(value = "/images", produces = "application/json")
-  public GetImagesResponseDto getImages() {
-    var username = securityUtils.getLoggedInUsername();
+  public GetImagesResponseDto getImages(
+      @AuthenticationPrincipal String username
+  ) {
     var account = accountService.getByUsername(username);
     return new GetImagesResponseDto(imageService.getImagesOfUser(account.id()));
   }

@@ -36,11 +36,13 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 minio:
-  url: http://localhost:9000
-  access-key: judex
-  secret-key: password
-  bucket: minio-storage
-  image-size: 10485760
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:judex}
+  secret-key: ${MINIO_SECRET_KEY:password}
+  main-bucket: ${MINIO_MAIN_BUCKET:minio-storage}
+  minor-bucket: ${MINIO_MINOR_BUCKET:minio-temp}
+  image-size: ${MINIO_IMAGE_SIZE:10485760}
+  ttl: ${MINIO_TTL:1}
 logging:
   level:
     "liquibase": info

@@ -22,7 +22,7 @@ internal class S3ServiceTest {
     @Test
     fun init() {
         // Given
-        whenever(minioProperties.bucket).thenReturn("test-bucket")
+        whenever(minioProperties.mainBucket).thenReturn("test-bucket")
         whenever(minioClient.bucketExists(any())).thenReturn(true)
 
         // When
@@ -35,7 +35,7 @@ internal class S3ServiceTest {
     @Test
     fun initBucketNotFound() {
         // Given
-        whenever(minioProperties.bucket).thenReturn("test-bucket")
+        whenever(minioProperties.mainBucket).thenReturn("test-bucket")
         whenever(minioClient.bucketExists(any())).thenReturn(false)
 
         // When
@@ -52,7 +52,7 @@ internal class S3ServiceTest {
         val expectedFilename = "testImage.png"
         val content = "testFileContent".toByteArray()
 
-        whenever(minioProperties.bucket).thenReturn("test-bucket")
+        whenever(minioProperties.mainBucket).thenReturn("test-bucket")
         whenever(minioProperties.imageSize).thenReturn(10485760)
         whenever(file.contentType).thenReturn("image/png")
         whenever(file.bytes).thenReturn(content)

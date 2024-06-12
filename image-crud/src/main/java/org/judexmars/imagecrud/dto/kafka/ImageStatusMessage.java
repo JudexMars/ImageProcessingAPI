@@ -1,8 +1,9 @@
 package org.judexmars.imagecrud.dto.kafka;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 import org.judexmars.imagecrud.dto.imagefilters.FilterType;
 
 /**
@@ -13,9 +14,12 @@ import org.judexmars.imagecrud.dto.imagefilters.FilterType;
  * @param filters   list of filter types
  */
 public record ImageStatusMessage(
-    UUID imageId,
-    UUID requestId,
+    @Schema(format = "uuid")
+    String imageId,
+    @Schema(format = "uuid")
+    String requestId,
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    List<FilterType> filters
+    List<FilterType> filters,
+    Map<String, Object> props
 ) {
 }
