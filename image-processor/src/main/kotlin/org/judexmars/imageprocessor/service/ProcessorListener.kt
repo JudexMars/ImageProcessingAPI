@@ -14,8 +14,6 @@ class ProcessorListener(
     private val processors: List<Processor>,
     private val redisTemplate: RedisTemplate<String, String>,
 ) {
-//    private val allowedTypes = ProcessorType.entries.map(ProcessorType::toString)
-
     companion object {
         private val log = LoggerFactory.getLogger(ProcessorListener::class.java)
     }

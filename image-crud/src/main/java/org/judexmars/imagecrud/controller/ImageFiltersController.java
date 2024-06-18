@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.controller;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -65,6 +66,7 @@ public class ImageFiltersController {
           content = @Content(mediaType = "application/json",
               schema = @Schema(implementation = BaseResponseDto.class)))
   })
+  @RateLimiter(name = "filterRL")
   @PostMapping(value = "/image/{image-id}/filters/apply", produces = "application/json")
   public ApplyImageFiltersResponse applyFilters(@PathVariable(name = "image-id") UUID imageId,
                                                    @RequestParam List<FilterType> filters,
