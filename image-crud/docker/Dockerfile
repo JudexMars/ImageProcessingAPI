@@ -3,6 +3,7 @@ ENV HOME=/usr/app
 RUN mkdir -p $HOME
 WORKDIR $HOME
 ADD . $HOME
+RUN apk update && apk add --no-cache wget
 RUN --mount=type=cache,target=/root/.m2 mvn -f $HOME/pom.xml clean package -DskipTests
 
 FROM eclipse-temurin:21-alpine

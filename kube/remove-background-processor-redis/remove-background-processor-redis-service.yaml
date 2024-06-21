@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: remove-background-processor-redis
+  name: remove-background-processor-redis
+spec:
+  ports:
+    - name: "6382"
+      port: 6382
+      targetPort: 6382
+  selector:
+    io.kompose.service: remove-background-processor-redis

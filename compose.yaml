@@ -393,6 +393,8 @@ services:
       - ssl-keyfile
       - ssl_certfile
       - ssl_cafile
+    ports:
+      - 8083:8083
     networks:
       - shared-network
   brightness-processor:
