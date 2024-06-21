@@ -1,5 +1,7 @@
 package org.judexmars.imageprocessor.service
 
+import io.micrometer.core.annotation.Timed
+import io.micrometer.observation.annotation.Observed
 import jakarta.annotation.PostConstruct
 import org.judexmars.imageprocessor.dto.ImageStatusMessage
 import org.slf4j.LoggerFactory
@@ -26,6 +28,17 @@ class ProcessorListener(
     @KafkaListener(
         containerFactory = "kafkaListenerContainerFactory",
         topics = ["images.wip"],
+    )
+    @Timed(
+        value = "imagefilter.time",
+        description = "Execution time of filter processing",
+        percentiles = [0.5, 0.95, 0.99],
+        histogram = true,
+    )
+    @Observed(
+        name = "accept-apply-filter",
+        contextualName = "applying-filter",
+        lowCardinalityKeyValues = ["source", "broker"],
     )
     fun listen(
         statusMessage: ImageStatusMessage,

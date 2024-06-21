@@ -60,3 +60,27 @@ resilience4j:
           seconds: 1s
         timeout-duration:
           seconds: 5s
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+  zipkin:
+    tracing:
+      endpoint: http://tempo:9411/api/v2/spans

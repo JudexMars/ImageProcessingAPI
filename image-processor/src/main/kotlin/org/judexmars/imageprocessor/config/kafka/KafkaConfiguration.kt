@@ -53,7 +53,7 @@ class KafkaConfiguration(
 
     @Bean
     fun kafkaTemplate(): KafkaTemplate<String, ImageStatusMessage> {
-        return KafkaTemplate(producerFactory())
+        return KafkaTemplate(producerFactory()).apply { setObservationEnabled(true) }
     }
 
     @Bean
@@ -82,6 +82,7 @@ class KafkaConfiguration(
                 setAutoStartup(true)
                 setConcurrency(processorProperties.concurrency)
                 setCommonErrorHandler(errorHandler())
+                isObservationEnabled = true
                 consumerFactory = consumerFactory(processorProperties)
             }
         }

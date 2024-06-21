@@ -58,10 +58,18 @@ public class KafkaConfiguration {
             .build());
   }
 
+  /**
+   * Simple kafka template.
+   *
+   * @return {@link KafkaTemplate}
+   */
   @Bean("IMAGES_WIP_TEMPLATE")
   public KafkaTemplate<String, ImageStatusMessage> kafkaTemplate() {
-    return new KafkaTemplate<>(producerFactory(props ->
+    KafkaTemplate<String, ImageStatusMessage> template =
+        new KafkaTemplate<>(producerFactory(props ->
         props.put(ProducerConfig.ACKS_CONFIG, "all")));
+    template.setObservationEnabled(true);
+    return template;
   }
 
   private <K, V> ProducerFactory<K, V> producerFactory(
@@ -93,6 +101,7 @@ public class KafkaConfiguration {
     ConcurrentKafkaListenerContainerFactory<String, ImageStatusMessage> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+    factory.getContainerProperties().setObservationEnabled(true);
     factory.setAutoStartup(true);
     factory.setConcurrency(2);
     factory.setConsumerFactory(consumerFactory());

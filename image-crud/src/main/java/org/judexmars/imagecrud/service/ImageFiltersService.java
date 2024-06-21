@@ -1,5 +1,6 @@
 package org.judexmars.imagecrud.service;
 
+import io.micrometer.observation.annotation.Observed;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
@@ -44,16 +45,20 @@ public class ImageFiltersService {
   /**
    * Applies filters to the selected image asynchronously.
    *
-   * @param imageId id of the image
-   * @param filters filter types
+   * @param imageId   id of the image
+   * @param filters   filter types
    * @param accountId id of account requesting this
    * @return DTO with request id
    */
   @Transactional
+  @Observed(
+      name = "request-apply-filter",
+      contextualName = "applying-filter",
+      lowCardinalityKeyValues = {"source", "api"})
   public ApplyImageFiltersResponse applyFilters(UUID imageId,
-                                                   List<FilterType> filters,
-                                                   Map<String, Object> props,
-                                                   UUID accountId) {
+                                                List<FilterType> filters,
+                                                Map<String, Object> props,
+                                                UUID accountId) {
     var meta = imageService.getImageMetaAsEntitySafely(imageId, accountId);
     var wipStatus = getRequestStatus(BasicRequestStatus.WIP.name());
     var request = new ApplyFilterRequestEntity().setStatus(wipStatus).setImage(meta);

@@ -4,12 +4,18 @@ services:
       context: image-crud
       dockerfile: docker/Dockerfile
     depends_on:
-      - image-crud-postgres
-      - image-crud-redis
-      - image-crud-s3
-      - kafka-1
-      - kafka-2
-      - kafka-3
+      image-crud-postgres:
+        condition: service_started
+      image-crud-redis:
+        condition: service_started
+      image-crud-s3:
+        condition: service_started
+      kafka-1:
+        condition: service_started
+      kafka-2:
+        condition: service_started
+      kafka-3:
+        condition: service_started
     secrets:
       - postgres-password
       - ssl-keystore
@@ -34,6 +40,12 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - shared-network
+    healthcheck:
+      test: "wget -T5 -qO- http://localhost:8080/api/v1/actuator/health | grep UP || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   image-crud-postgres:
     image: postgres
     restart: always
@@ -237,6 +249,8 @@ services:
       context: image-processor
       dockerfile: docker/Dockerfile
     depends_on:
+      image-crud:
+        condition: service_healthy
       image-crud-s3:
         condition: service_started
       kafka-1:
@@ -281,11 +295,19 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - shared-network
+    healthcheck:
+      test: "wget -T5 -qO- http://localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   reverse-colors-processor:
     build:
       context: image-processor
       dockerfile: docker/Dockerfile
     depends_on:
+      image-crud:
+        condition: service_healthy
       image-crud-s3:
         condition: service_started
       kafka-1:
@@ -330,11 +352,19 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - shared-network
+    healthcheck:
+      test: "wget -T5 -qO- http://localhost:8082/actuator/health | grep UP || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   remove-background-processor:
     build:
       context: cv-image-processor
       dockerfile: docker/Dockerfile
     depends_on:
+      image-crud:
+        condition: service_healthy
       image-crud-s3:
         condition: service_started
       kafka-1:
@@ -370,6 +400,8 @@ services:
       context: image-processor
       dockerfile: docker/Dockerfile
     depends_on:
+      image-crud:
+        condition: service_healthy
       image-crud-s3:
         condition: service_started
       kafka-1:
@@ -414,11 +446,19 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - shared-network
+    healthcheck:
+      test: "wget -T5 -qO- http://localhost:8084/actuator/health | grep UP || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   tag-processor:
     build:
       context: image-processor
       dockerfile: docker/Dockerfile
     depends_on:
+      image-crud:
+        condition: service_healthy
       image-crud-s3:
         condition: service_started
       kafka-1:
@@ -463,6 +503,12 @@ services:
       - SPRING_KAFKA_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=
     networks:
       - shared-network
+    healthcheck:
+      test: "wget -T5 -qO- http://localhost:8085/actuator/health | grep UP || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   crop-processor-redis:
     image: redis:latest
     restart: always
@@ -513,6 +559,43 @@ services:
       - redis-volume-tag:/data
     networks:
       - shared-network
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    volumes:
+      - ./image-crud/environment/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "6385:9090"
+    networks:
+      - shared-network
+  grafana:
+    build:
+      context: ./image-crud
+      dockerfile: ./docker/grafana/Dockerfile
+    restart: always
+    volumes:
+      - grafana-volume:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "6386:3000"
+    networks:
+      - shared-network
+  tempo:
+    image: grafana/tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    user: "0"
+    volumes:
+      - tempo-volume:/tmp/tempo
+      - ./image-crud/environment/tempo/tempo-local.yaml:/etc/tempo.yaml:ro
+    ports:
+      - "14268"  # jaeger ingest
+      - "9411:9411" # zipkin
+      - "3200:3200"
+      - "3201:3201"
+    networks:
+      - shared-network
 
 secrets:
   postgres-password:
@@ -542,4 +625,5 @@ volumes:
   redis-volume-remove-background:
   redis-volume-brightness:
   redis-volume-tag:
-  
+  grafana-volume:
+  tempo-volume:
