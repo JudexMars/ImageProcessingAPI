@@ -72,17 +72,14 @@ spec:
             - name: SPRING_KAFKA_PROPERTIES_SSL_TRUSTSTORE_PASSWORD
               value: "123456"
           image: judexmars/image-processor:1.0.0
-#          livenessProbe:
-#            httpGet:
-#              path: /api/v1/actuator/health
-#              port: 8080
-##            exec:
-##              command:
-##                - wget -T5 -qO- http://localhost:8084/actuator/health | grep UP || exit 1
-#            failureThreshold: 5
-#            initialDelaySeconds: 20
-#            periodSeconds: 15
-#            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/actuator/health
+              port: 8084
+            failureThreshold: 5
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
           name: brightness-processor
           ports:
             - containerPort: 8084

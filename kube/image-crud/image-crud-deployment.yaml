@@ -53,11 +53,12 @@ spec:
               value: "123456"
           image: judexmars/image-processing-api:pr-8
           livenessProbe:
-            exec:
-              command:
-                - wget -T5 -qO- http://localhost:8080/api/v1/actuator/health | grep UP || exit 1
+            httpGet:
+              port: 8080
+              path: api/v1/actuator/health
+              host: localhost
             failureThreshold: 5
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 15
             timeoutSeconds: 5
           name: image-crud

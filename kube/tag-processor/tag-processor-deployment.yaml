@@ -78,17 +78,14 @@ spec:
             - name: IMAGGA_URI
               value: "https://api.imagga.com/v2/"
           image: judexmars/image-processor:1.0.0
-#          livenessProbe:
-#            httpGet:
-#              path: /api/v1/actuator/health
-#              port: 8080
-##            exec:
-##              command:
-##                - wget -T5 -qO- http://localhost:8085/actuator/health | grep UP || exit 1
-#            failureThreshold: 5
-#            initialDelaySeconds: 20
-#            periodSeconds: 15
-#            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/actuator/health
+              port: 8085
+            failureThreshold: 5
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
           name: tag-processor
           ports:
             - containerPort: 8085

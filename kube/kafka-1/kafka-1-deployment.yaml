@@ -63,18 +63,7 @@ spec:
               value: /run/custom-secrets/ssl-truststore
             - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
               value: "123456"
-#            - name: MY_POD_IP
-#              valueFrom:
-#                fieldRef:
-#                  fieldPath: status.podIP
           image: confluentinc/cp-kafka:latest
-#          livenessProbe:
-#            exec:
-#              command:
-#                - bash /usr/bin/check_kafka_topics.sh 0.0.0.0:9092 /usr/bin/kafka_client.properties
-#            failureThreshold: 10
-#            periodSeconds: 30
-#            timeoutSeconds: 10
           name: kafka-1
           ports:
             - containerPort: 9082
