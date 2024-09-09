@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  kafka_client.properties: |
+    # kafka_client.properties
+    security.protocol=SASL_SSL
+    sasl.mechanism=PLAIN
+    ssl.truststore.location=/run/custom-secrets/ssl-truststore
+    ssl.truststore.password=123456
+    ssl.keystore.location=/run/custom-secrets/ssl-keystore
+    ssl.keystore.password=123456
+    ssl.key.password=123456
+    ssl.endpoint.identification.algorithm=
+    sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="admin" password="admin-secret";
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: kafka-3
+  name: kafka-3-cm1
